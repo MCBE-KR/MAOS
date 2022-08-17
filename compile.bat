@@ -1,3 +1,5 @@
+chcp 65001
+
 cd MAOS(B)
 call tsc
 
