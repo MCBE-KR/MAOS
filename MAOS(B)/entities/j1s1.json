@@ -1,0 +1,33 @@
+{
+    "format_version": "1.13.0",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "maos:projectile_j1s1",
+            "runtime_identifier": "minecraft:snowball",
+            "is_spawnable": false,
+            "is_summonable": true,
+            "is_experimental": false
+        },
+        "component_groups": {
+            "maos:despawn": {
+                "minecraft:instant_despawn": {}
+            }
+        },
+        "components": {
+            "minecraft:type_family": {
+                "family": [
+                    "projectile"
+                ]
+            }
+        },
+        "events": {
+            "maos:despawn": {
+                "add": {
+                    "component_groups": [
+                        "maos:despawn"
+                    ]
+                }
+            }
+        }
+    }
+}

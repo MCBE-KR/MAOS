@@ -1,0 +1,28 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "maos:projectile_j1s1",
+            "materials": {
+                "default": "arrow"
+            },
+            "textures": {
+                "default": "textures/entity/j1s1"
+            },
+            "geometry": {
+                "default": "geometry.j1s1"
+            },
+            "render_controllers": [
+                "controller.render.default"
+            ],
+            "animations": {
+                "normal": "animation.j1s1.normal"
+            },
+            "scripts": {
+                "animate": [
+                    "normal"
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,5 @@
+﻿pack.name=MAOS [Resource]
+pack.des=Creator : Namsic
+
+item.cmd:skill_a=Skill 1&2
+item.cmd:skill_b=Skill 3&4

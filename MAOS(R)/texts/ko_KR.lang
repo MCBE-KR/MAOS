@@ -1,0 +1,5 @@
+﻿pack.name=MAOS [리소스팩]
+pack.description=제작자 : 남식
+
+item.cmd:skill_a=스킬 1&2
+item.cmd:skill_b=스킬 3&4
