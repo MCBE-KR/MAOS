@@ -2,7 +2,7 @@ import { Player, world } from "mojang-minecraft";
 import { send } from "../api/message";
 import { Score } from "../api/scoreboard";
 import { ADMIN_LIST, OVERWORLD } from "../common/constants";
-import { setJob } from "../job/job";
+import { setJob } from "../job/jobData";
 
 const initScoreboard = (player: Player) => {
 	Object.values(Score).forEach(score => {
@@ -23,10 +23,22 @@ const setPlayerJob = (player: Player, data: string) => {
 		target = player;
 		job = Number(split[0]);
 	} else {
+		let playerName = split[0];
+		if(playerName.startsWith("\"")) {
+			for(let i = 1; i < split.length; i++) {
+				playerName += ` ${split[i]}`;
+
+				if(playerName.endsWith("\"")) {
+					playerName = playerName.replaceAll("\"", "");
+					break;
+				}
+			}
+		}
+
 		target = Array.from(world.getPlayers())
-			.find(p => p.name === split[0]);
+			.find(p => p.name === playerName);
 		if(!target) {
-			throw new Error(`Unknown player - ${split[0]}`);
+			throw new Error(`Unknown player - ${playerName}`);
 		}
 
 		job = Number(split[1]);

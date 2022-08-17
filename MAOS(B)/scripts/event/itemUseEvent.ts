@@ -1,6 +1,6 @@
 import { Player, world } from "mojang-minecraft";
 import { send } from "../api/message";
-import { getJob } from "../job/job";
+import { getJob } from "../job/jobData";
 
 world.events.itemUse.subscribe(event => {
 	const { source, item } = event;

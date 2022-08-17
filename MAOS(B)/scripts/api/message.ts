@@ -1,11 +1,12 @@
 import { Player } from "mojang-minecraft";
 
-export const send = (player: Player, message: string | object) => {
+export const send = (player: Player, message: string | number | object) => {
 	const messageObject: any = {};
 	
-	if(typeof message === "string") {
+	const messageType = typeof message;
+	if(messageType === "string" || messageType === "number") {
 		messageObject.rawtext = [{
-			text: message
+			text: String(message)
 		}];
 	} else {
 		messageObject.rawtext = message;

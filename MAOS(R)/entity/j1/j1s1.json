@@ -2,7 +2,7 @@
     "format_version": "1.10.0",
     "minecraft:client_entity": {
         "description": {
-            "identifier": "maos:projectile_j1s1",
+            "identifier": "maos:j1s1",
             "materials": {
                 "default": "arrow"
             },
