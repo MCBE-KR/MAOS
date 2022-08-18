@@ -22,7 +22,7 @@ export abstract class Job {
 	abstract execute3(player: Player): void;
 	abstract execute4(player: Player): void;
 
-	abstract triggerEvent(event: JobEvent): void;
+	abstract triggerEvent(event: JobEvent, player?: Player): void;
 
 	getSkill = (
 		skillNumber: number,

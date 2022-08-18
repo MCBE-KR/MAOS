@@ -1,8 +1,9 @@
-import { Player } from "mojang-minecraft";
+import { Player, Vector } from "mojang-minecraft";
 import { send } from "../../api/message";
+import { addProjectile } from "../../api/projectile";
 import { getScore, Score, setScore } from "../../api/scoreboard";
 import { Job, JobEvent } from "../job";
-import { checkCoolAndMn, minusStat, resetScore } from "../jobApi";
+import { addStat, checkCoolAndMn, minusStat, resetScore } from "../jobApi";
 
 export class IceMagician extends Job {
 	initStat(player: Player): void {
@@ -39,8 +40,12 @@ export class IceMagician extends Job {
 		setScore(player, Score.cool1, getScore(player, Score.baseCool1));
 		minusStat(player, 30, Score.mn, Score.maxmn);
 
-		const view = player.viewVector;
-		send(player, `${view.x} ${view.y} ${view.z}`);
+		addProjectile(
+			"maos:j1s1",
+			player,
+			player.viewVector,
+			new Vector(0, 0.8, 0),
+		);
 	}
 
 	execute2(player: Player): void {
@@ -64,9 +69,11 @@ export class IceMagician extends Job {
 		send(player, "s4");
 	}
 
-	triggerEvent(event: JobEvent): void {
+	triggerEvent(event: JobEvent, player?: Player): void {
 		if (event !== JobEvent.DESPAWN_PROJECTILE) {
 			return;
 		}
+
+		addStat(player!, 5, Score.mn, Score.maxmn);
 	}
 }

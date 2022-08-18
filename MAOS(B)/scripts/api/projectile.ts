@@ -1,48 +1,19 @@
 import { Entity, EntityQueryOptions, EntityQueryScoreOptions, Location, Player, Vector, world } from "mojang-minecraft";
-import { Score } from "../api/scoreboard";
-import { addStat } from "../job/jobApi";
-import { OVERWORLD } from "./constants";
+import { Score } from "./scoreboard";
+import { minusStat } from "../job/jobApi";
+import { OVERWORLD } from "../common/constants";
+import { projectileData, ProjectileIdentifier } from "../common/projectileData";
+import { getJob } from "../job/jobData";
+import { JobEvent } from "../job/job";
 
 const PROJECTILE_NEAR = "maos_projectile_near";
 const projectiles: Projectile[] = [];
 
 let running = false;
 
-interface ProjectileData {
-	life: number;
-	damage: number;
-	initialSpeed: number;
-	scoreFlags?: [
-		{
-			objectiveId: string;
-			minScore: number;
-			maxScore: number;
-			exclude: boolean;
-		},
-	];
-	maxHitCount: number;
-	destroyAfterHit: boolean;
-	keepUntilAllHit: boolean;
-	hitRange: number | (() => Player[]);
-}
-
-export const projectileData: {
-	[identifier: string]: ProjectileData
-} = {
-	"maos:j1s1": {
-		life: 30,
-		damage: 200,
-		initialSpeed: 0.6,
-		maxHitCount: 1,
-		destroyAfterHit: true,
-		keepUntilAllHit: false,
-		hitRange: 0.9
-	}
-};
-
 interface Projectile {
 	entity: Entity;
-	spawner: Player;
+	summoner: Player;
 	life: number;
 	damage: number;
 	vector: Vector;
@@ -59,9 +30,9 @@ interface Projectile {
 	destroyAfterHit: boolean;
 	keepUntilAllHit: boolean;
 	hitRange: number | (() => Player[] | null);
-	onHit?: (self: Entity, spawner: Player, targets: Player[]) => void;
+	onHit?: (self: Entity, summoner: Player, targets: Player[]) => void;
 	onTick?: {
-		[tick: number]: (self: Entity, spawner: Player) => void;
+		[tick: number]: (self: Entity, summoner: Player) => void;
 	};
 }
 
@@ -76,7 +47,7 @@ const tickCallback = () => {
 	const removeIndexes = [];
 	for(let i = 0; i < length; i++) {
 		const projectile = projectiles[projectiles.length];
-		const { entity, spawner, damage, vector, scoreFlags, hitRange, maxHitCount, onHit } = projectile;
+		const { entity, summoner: summoner, damage, vector, scoreFlags, hitRange, maxHitCount, onHit } = projectile;
 
 		let tick = projectile.tick;
 
@@ -87,7 +58,6 @@ const tickCallback = () => {
 			continue;
 		}
 
-
 		projectile.tick = ++tick;
 		if (tick === projectile.life) {
 			removeIndexes.push(i);
@@ -95,7 +65,7 @@ const tickCallback = () => {
 
 		const onTick = projectile.onTick?.[tick];
 		if(onTick) {
-			onTick(entity, spawner);
+			onTick(entity, summoner);
 		}
 
 		const { location, rotation } = entity;
@@ -145,16 +115,18 @@ const tickCallback = () => {
 		}
 
 		if(onHit) {
-			onHit(entity, spawner, targets!);
+			onHit(entity, summoner, targets!);
 		}
 
 		for(const target of targets!) {
-			spawner.runCommand(`damage "${target.name}" 1 entity_attack`);
-			addStat(target, -damage, Score.hp, Score.maxhp);
+			summoner.runCommand(`damage "${target.name}" 1 entity_attack`);
+			minusStat(target, damage, Score.hp, Score.maxhp);
 		}
 
 		if(projectile.destroyAfterHit || maxHitCount !== hitEntitiesCount) {
 			removeIndexes.push(i);
+			getJob(summoner).triggerEvent(JobEvent.DESPAWN_PROJECTILE, summoner);
+
 			continue;
 		}
 	}
@@ -165,15 +137,23 @@ const tickCallback = () => {
 };
 
 export const addProjectile = (
-	entity: Entity,
-	spawner: Player,
-	data: ProjectileData,
+	identifier: ProjectileIdentifier,
+	summoner: Player,
 	viewVector: Vector,
-	onHit?: (self: Entity, spawner: Player, targets: Player[]) => void,
+	offset: Vector,
+	onHit?: (self: Entity, summoner: Player, targets: Player[]) => void,
 	onTick?: {
-		[tick: number]: (self: Entity, spawner: Player) => void
-	}
+		[tick: number]: (self: Entity, summoner: Player) => void;
+	},
 ) => {
+	const location = summoner.location;
+	const spawnLocation = new Location(
+		location.x + offset.x,
+		location.y + offset.y,
+		location.z + offset.z,
+	);
+	const entity = OVERWORLD.spawnEntity(identifier, spawnLocation);
+
 	const {
 		life,
 		damage,
@@ -183,12 +163,12 @@ export const addProjectile = (
 		destroyAfterHit,
 		keepUntilAllHit,
 		hitRange,
-	} = data;
+	} = projectileData[identifier];
 	const { x, y, z } = viewVector;
 
 	projectiles.push({
 		entity,
-		spawner,
+		summoner,
 		life,
 		damage,
 		scoreFlags,
@@ -206,7 +186,7 @@ export const addProjectile = (
 		),
 	});
 
-	if(!running) {
+	if (!running) {
 		running = true;
 		world.events.tick.subscribe(tickCallback);
 	}
