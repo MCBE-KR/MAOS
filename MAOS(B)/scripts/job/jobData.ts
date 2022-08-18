@@ -1,5 +1,5 @@
 import { Player } from "mojang-minecraft";
-import { getScore, Score, setScore } from "../api/scoreboard";
+import { getScore, setScore } from "../api/scoreboard";
 import { IceMagician } from "./implement/iceMagician";
 import { Job } from "./job";
 

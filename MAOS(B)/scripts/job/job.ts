@@ -1,8 +1,9 @@
 import { Player } from "mojang-minecraft";
 
-export enum JobEvent {
-	DESPAWN_PROJECTILE,
-}
+const jobEvents = [
+	"DESPAWN_PROJECTILE"
+] as const;
+export type JobEvent = typeof jobEvents[number];
 
 export const SkillFailReason = {
 	COOL_REMAIN: "§c스킬 {0} 쿨타임: [§l{1}/{2}§r§c]",
@@ -21,8 +22,6 @@ export abstract class Job {
 	abstract execute2(player: Player): void;
 	abstract execute3(player: Player): void;
 	abstract execute4(player: Player): void;
-
-	abstract triggerEvent(event: JobEvent, player?: Player): void;
 
 	getSkill = (
 		skillNumber: number,

@@ -1,9 +1,9 @@
 import { Entity, EntityQueryOptions, EntityQueryScoreOptions, Location, Player, Vector, world } from "mojang-minecraft";
 import { minusStat } from "../job/jobApi";
 import { OVERWORLD } from "../common/constants";
-import { projectileData, ProjectileIdentifier } from "../common/projectileData";
-import { getJob } from "../job/jobData";
+import { projectileData, projectileEvent, ProjectileIdentifier } from "../common/projectileData";
 import { JobEvent } from "../job/job";
+import { getScore } from "./scoreboard";
 
 const PROJECTILE_NEAR = "maos_projectile_near";
 const projectiles: Projectile[] = [];
@@ -25,6 +25,7 @@ interface Projectile {
 			exclude: boolean;
 		},
 	];
+	currentHitCount: number;
 	maxHitCount: number;
 	destroyAfterHit: boolean;
 	keepUntilAllHit: boolean;
@@ -45,9 +46,19 @@ const tickCallback = () => {
 
 	const removeIndexes = [];
 	for(let i = 0; i < length; i++) {
-		const projectile = projectiles[projectiles.length];
-		const { entity, summoner: summoner, damage, vector, scoreFlags, hitRange, maxHitCount, onHit } = projectile;
+		const projectile = projectiles[i];
+		const {
+			entity,
+			summoner: summoner,
+			damage,
+			vector,
+			scoreFlags,
+			hitRange,
+			maxHitCount,
+			onHit,
+		} = projectile;
 
+		let currentHitCount = projectile.currentHitCount;
 		let tick = projectile.tick;
 
 		try {
@@ -59,6 +70,9 @@ const tickCallback = () => {
 
 		projectile.tick = ++tick;
 		if (tick === projectile.life) {
+			const jobScore = getScore(summoner, "job");
+			projectileEvent[jobScore]?.DESPAWN_PROJECTILE(summoner, entity);
+
 			removeIndexes.push(i);
 		}
 
@@ -76,9 +90,10 @@ const tickCallback = () => {
 		
 		entity.teleport(newLocation, OVERWORLD, rotation.x, rotation.y);
 
-		let targets: Player[] | null;
+		let targets: Player[] | null = null;
 		if(typeof hitRange === "number") {
 			try {
+				// 다른 팀만 가져오도록
 				entity.runCommand(`tag @a[r=${hitRange}] add ${PROJECTILE_NEAR}`);
 
 				const scoreOptions: EntityQueryScoreOptions[] = [];
@@ -97,12 +112,17 @@ const tickCallback = () => {
 				const option = new EntityQueryOptions();
 				option.tags = [PROJECTILE_NEAR];
 				option.type = "minecraft:player";
-				option.closest = maxHitCount;
+				option.closest = maxHitCount - currentHitCount;
 				option.scoreOptions = scoreOptions;
 
 				targets = Array.from(OVERWORLD.getEntities(option)) as Player[];
+			// tslint:disable-next-line: no-empty
+			} catch {
 			} finally {
-				OVERWORLD.runCommand(`tag @e remove ${PROJECTILE_NEAR}`);
+				try {
+					OVERWORLD.runCommand(`tag @e remove ${PROJECTILE_NEAR}`);
+				// tslint:disable-next-line: no-empty
+				} catch {}
 			}
 		} else {
 			targets = hitRange();
@@ -118,20 +138,25 @@ const tickCallback = () => {
 		}
 
 		for(const target of targets!) {
-			summoner.runCommand(`damage "${target.name}" 1 entity_attack`);
+			try {
+				summoner.runCommand(`damage "${target.name}" 1 entity_attack`);
+			// tslint:disable-next-line: no-empty
+			} catch {}
+
 			minusStat(target, damage, "hp", "maxhp");
 		}
 
-		if(projectile.destroyAfterHit || maxHitCount !== hitEntitiesCount) {
+		currentHitCount += hitEntitiesCount;
+		projectile.currentHitCount = currentHitCount;
+		
+		if(projectile.destroyAfterHit || maxHitCount === currentHitCount) {
 			removeIndexes.push(i);
-			getJob(summoner).triggerEvent(JobEvent.DESPAWN_PROJECTILE, summoner);
-
-			continue;
 		}
 	}
 
 	for(const index of removeIndexes) {
-		projectiles.splice(index, 1);
+		const projectile = projectiles.splice(index, 1)[0];
+		projectile.entity.triggerEvent("maos:despawn");
 	}
 };
 
@@ -178,6 +203,7 @@ export const addProjectile = (
 		onHit,
 		onTick,
 		tick: 0,
+		currentHitCount: 0,
 		vector: new Vector(
 			x * initialSpeed,
 			y * initialSpeed,

@@ -1,4 +1,6 @@
-import { Player } from "mojang-minecraft";
+import { Entity, Player } from "mojang-minecraft";
+import { JobEvent } from "../job/job";
+import { addStat } from "../job/jobApi";
 
 export type ProjectileIdentifier = "maos:j1s1";
 
@@ -31,5 +33,18 @@ export const projectileData: {
 		destroyAfterHit: true,
 		keepUntilAllHit: false,
 		hitRange: 0.9,
+	},
+};
+
+export const projectileEvent: {
+	[jobScore: number]: {
+		[event in JobEvent]: (summoner: Player, projectile: Entity) => void;
+	};
+} = {
+	// IceMagician
+	1: {
+		DESPAWN_PROJECTILE: (summoner: Player) => {
+			addStat(summoner, 5, "mn", "maxmn");
+		},
 	},
 };
