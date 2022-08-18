@@ -7,15 +7,15 @@ import { addStat, checkCoolAndMn, minusStat, resetScore } from "../jobApi";
 
 export class IceMagician extends Job {
 	initStat(player: Player): void {
-		setScore(player, Score.maxhp, 2000);
-		setScore(player, Score.maxmn, 200);
-		setScore(player, Score.hpRegen, 7);
-		setScore(player, Score.mnRegen, 10);
+		setScore(player, "maxhp", 2000);
+		setScore(player, "maxmn", 200);
+		setScore(player, "hpRegen", 7);
+		setScore(player, "mnRegen", 10);
 
-		setScore(player, Score.baseCool1, 50);
-		setScore(player, Score.baseCool2, 100);
-		setScore(player, Score.baseCool3, 150);
-		setScore(player, Score.baseCool4, 400);
+		setScore(player, "baseCool1", 50);
+		setScore(player, "baseCool2", 100);
+		setScore(player, "baseCool3", 150);
+		setScore(player, "baseCool4", 400);
 
 		resetScore(player);
 	}
@@ -37,8 +37,8 @@ export class IceMagician extends Job {
 	}
 
 	execute1(player: Player): void {
-		setScore(player, Score.cool1, getScore(player, Score.baseCool1));
-		minusStat(player, 30, Score.mn, Score.maxmn);
+		setScore(player, "cool1", getScore(player, "baseCool1"));
+		minusStat(player, 30, "mn", "maxmn");
 
 		addProjectile(
 			"maos:j1s1",
@@ -49,22 +49,22 @@ export class IceMagician extends Job {
 	}
 
 	execute2(player: Player): void {
-		setScore(player, Score.cool2, getScore(player, Score.baseCool2));
-		minusStat(player, 50, Score.mn, Score.maxmn);
+		setScore(player, "cool2", getScore(player, "baseCool2"));
+		minusStat(player, 50, "mn", "maxmn");
 
 		send(player, "s2");
 	}
 
 	execute3(player: Player): void {
-		setScore(player, Score.cool3, getScore(player, Score.baseCool3));
-		minusStat(player, 70, Score.mn, Score.maxmn);
+		setScore(player, "cool3", getScore(player, "baseCool3"));
+		minusStat(player, 70, "mn", "maxmn");
 
 		send(player, "s3");
 	}
 
 	execute4(player: Player): void {
-		setScore(player, Score.cool4, getScore(player, Score.baseCool4));
-		minusStat(player, 100, Score.mn, Score.maxmn);
+		setScore(player, "cool4", getScore(player, "baseCool4"));
+		minusStat(player, 100, "mn", "maxmn");
 
 		send(player, "s4");
 	}
@@ -74,6 +74,6 @@ export class IceMagician extends Job {
 			return;
 		}
 
-		addStat(player!, 5, Score.mn, Score.maxmn);
+		addStat(player!, 5, "mn", "maxmn");
 	}
 }

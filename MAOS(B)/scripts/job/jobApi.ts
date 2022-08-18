@@ -6,8 +6,8 @@ import { SkillFailReason } from "./job";
 export const addStat = (
 	player: Player,
 	stat: number,
-	objectiveId: string,
-	maxObjectiveId: string,
+	objectiveId: Score,
+	maxObjectiveId: Score,
 ) => {
 	const currentStat = getScore(player, objectiveId);
 	if (currentStat < -stat) {
@@ -24,37 +24,38 @@ export const addStat = (
 export const minusStat = (
 	player: Player,
 	stat: number,
-	objectiveId: string,
-	maxObjectiveId: string,
+	objectiveId: Score,
+	maxObjectiveId: Score,
 ) => {
 	addStat(player, -stat, objectiveId, maxObjectiveId);
 };
 
 export const checkCool = (player: Player, skillNumber: number) => {
-	let baseObjectiveId;
-	let objectiveId;
+	let baseObjectiveId: Score;
+	let objectiveId: Score;
+	
 	switch (skillNumber) {
 		case 1:
-			baseObjectiveId = Score.baseCool1;
-			objectiveId = Score.cool1;
+			baseObjectiveId = "baseCool1";
+			objectiveId = "cool1";
 
 			break;
 
 		case 2:
-			baseObjectiveId = Score.baseCool2;
-			objectiveId = Score.cool2;
+			baseObjectiveId = "baseCool2";
+			objectiveId = "cool2";
 
 			break;
 
 		case 3:
-			baseObjectiveId = Score.baseCool3;
-			objectiveId = Score.cool3;
+			baseObjectiveId = "baseCool3";
+			objectiveId = "cool3";
 
 			break;
 
 		case 4:
-			baseObjectiveId = Score.baseCool4;
-			objectiveId = Score.cool4;
+			baseObjectiveId = "baseCool4";
+			objectiveId = "cool4";
 
 			break;
 
@@ -76,10 +77,10 @@ export const checkCool = (player: Player, skillNumber: number) => {
 };
 
 export const checkMn = (player: Player, skillNumber: number, mn: number) => {
-	const success = getScore(player, Score.mn) >= mn;
+	const success = getScore(player, "mn") >= mn;
 
 	if (!success) {
-		const currentMn = getScore(player, Score.mn);
+		const currentMn = getScore(player, "mn");
 
 		return format(SkillFailReason.REQUIRES_MN, [
 			skillNumber,
@@ -101,11 +102,11 @@ export const checkCoolAndMn = (player: Player, skillNumber: number, mn: number) 
 };
 
 export const resetScore = (player: Player) => {
-	setScore(player, Score.hp, getScore(player, Score.maxhp));
-	setScore(player, Score.mn, getScore(player, Score.maxmn));
+	setScore(player, "hp", getScore(player, "maxhp"));
+	setScore(player, "mn", getScore(player, "maxmn"));
 
-	setScore(player, Score.cool1, 0);
-	setScore(player, Score.cool2, 0);
-	setScore(player, Score.cool3, 0);
-	setScore(player, Score.cool4, 0);
+	setScore(player, "cool1", 0);
+	setScore(player, "cool2", 0);
+	setScore(player, "cool3", 0);
+	setScore(player, "cool4", 0);
 };

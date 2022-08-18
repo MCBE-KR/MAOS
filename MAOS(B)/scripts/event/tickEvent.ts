@@ -1,7 +1,7 @@
 import { world } from "mojang-minecraft";
 import { format } from "../api/common";
 import { send } from "../api/message";
-import { getScore, Score, setScore } from "../api/scoreboard";
+import { getScore, setScore } from "../api/scoreboard";
 
 const getCoolResetText = (skillNumber: number) => {
 	return format("스킬 {0}의 쿨타임이 회복되었습니다", [skillNumber]);
@@ -10,36 +10,36 @@ const getCoolResetText = (skillNumber: number) => {
 const onTick = () => {
 	for(const player of world.getPlayers()) {
 		try {
-			let cool = getScore(player, Score.cool1);
+			let cool = getScore(player, "cool1");
 			if(cool > 0) {
-				setScore(player, Score.cool1, cool - 1);
+				setScore(player, "cool1", cool - 1);
 
 				if(cool === 1) {
 					send(player, getCoolResetText(1));
 				}
 			}
 			
-			cool = getScore(player, Score.cool2);
+			cool = getScore(player, "cool2");
 			if (cool > 0) {
-				setScore(player, Score.cool2, cool - 1);
+				setScore(player, "cool2", cool - 1);
 
 				if (cool === 1) {
 					send(player, getCoolResetText(2));
 				}
 			}
 
-			cool = getScore(player, Score.cool3);
+			cool = getScore(player, "cool3");
 			if (cool > 0) {
-				setScore(player, Score.cool3, cool - 1);
+				setScore(player, "cool3", cool - 1);
 
 				if (cool === 1) {
 					send(player, getCoolResetText(3));
 				}
 			}
 
-			cool = getScore(player, Score.cool4);
+			cool = getScore(player, "cool4");
 			if (cool > 0) {
-				setScore(player, Score.cool4, cool - 1);
+				setScore(player, "cool4", cool - 1);
 
 				if (cool === 1) {
 					send(player, getCoolResetText(4));
@@ -54,18 +54,18 @@ const onTick = () => {
 const onSec = () => {
 	for(const player of world.getPlayers()) {
 		try {
-			let currentStat = getScore(player, Score.hp);
-			let maxStat = getScore(player, Score.maxhp);
+			let currentStat = getScore(player, "hp");
+			let maxStat = getScore(player, "maxhp");
 			if(currentStat < maxStat) {
-				const hpRegen = getScore(player, Score.hpRegen);
-				setScore(player, Score.hp, Math.min(currentStat + hpRegen, maxStat));
+				const hpRegen = getScore(player, "hpRegen");
+				setScore(player, "hp", Math.min(currentStat + hpRegen, maxStat));
 			}
 
-			currentStat = getScore(player, Score.mn);
-			maxStat = getScore(player, Score.maxmn);
+			currentStat = getScore(player, "mn");
+			maxStat = getScore(player, "maxmn");
 			if(currentStat < maxStat) {
-				const mnRegen = getScore(player, Score.mnRegen);
-				setScore(player, Score.mn, Math.min(currentStat + mnRegen, maxStat));
+				const mnRegen = getScore(player, "mnRegen");
+				setScore(player, "mn", Math.min(currentStat + mnRegen, maxStat));
 			}
 		} catch(e) {
 			continue;

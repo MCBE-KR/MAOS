@@ -1,5 +1,4 @@
 import { Entity, EntityQueryOptions, EntityQueryScoreOptions, Location, Player, Vector, world } from "mojang-minecraft";
-import { Score } from "./scoreboard";
 import { minusStat } from "../job/jobApi";
 import { OVERWORLD } from "../common/constants";
 import { projectileData, ProjectileIdentifier } from "../common/projectileData";
@@ -120,7 +119,7 @@ const tickCallback = () => {
 
 		for(const target of targets!) {
 			summoner.runCommand(`damage "${target.name}" 1 entity_attack`);
-			minusStat(target, damage, Score.hp, Score.maxhp);
+			minusStat(target, damage, "hp", "maxhp");
 		}
 
 		if(projectile.destroyAfterHit || maxHitCount !== hitEntitiesCount) {

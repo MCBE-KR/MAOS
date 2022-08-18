@@ -4,7 +4,7 @@ import { IceMagician } from "./implement/iceMagician";
 import { Job } from "./job";
 
 export const getJob = (player: Player): Job => {
-	return JOBS[getScore(player, Score.job)];
+	return JOBS[getScore(player, "job")];
 };
 
 export const setJob = (player: Player, jobId: number) => {
@@ -13,7 +13,7 @@ export const setJob = (player: Player, jobId: number) => {
 		throw new Error(`Unknown jobId - ${jobId}`);
 	}
 
-	setScore(player, Score.job, jobId);
+	setScore(player, "job", jobId);
 	job.initStat(player);
 };
 
