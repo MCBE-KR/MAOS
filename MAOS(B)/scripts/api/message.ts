@@ -1,4 +1,5 @@
 import { Player } from "mojang-minecraft";
+import { runCommandOn } from "./common";
 
 export const send = (player: Player, message: string | number | object) => {
 	const messageObject: any = {};
@@ -12,5 +13,5 @@ export const send = (player: Player, message: string | number | object) => {
 		messageObject.rawtext = message;
 	}
 
-	player.runCommand(`tellraw @s ${JSON.stringify(messageObject)}`);
+	runCommandOn(player, `tellraw @s ${JSON.stringify(messageObject)}`);
 };

@@ -1,7 +1,8 @@
-import { Player, Vector } from "mojang-minecraft";
+import { Entity, MolangVariableMap, Player } from "mojang-minecraft";
 import { send } from "../../api/message";
 import { addProjectile } from "../../api/projectile";
 import { getScore, setScore } from "../../api/scoreboard";
+import { OVERWORLD } from "../../common/constants";
 import { Job } from "../job";
 import { checkCoolAndMn, minusStat, resetScore } from "../jobApi";
 
@@ -44,7 +45,14 @@ export class IceMagician extends Job {
 			"maos:j1s1",
 			player,
 			player.viewVector,
-			new Vector(0, 0.8, 0),
+			undefined,
+			undefined,
+			undefined,
+			{
+				0: (_self: Entity) => {
+					OVERWORLD.spawnParticle("maos:j1s1", _self.location, new MolangVariableMap());
+				}
+			}
 		);
 	}
 

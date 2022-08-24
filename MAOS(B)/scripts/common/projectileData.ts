@@ -26,13 +26,13 @@ export const projectileData: {
 	[identifier in ProjectileIdentifier]: ProjectileData;
 } = {
 	"maos:j1s1": {
-		life: 30,
+		life: 15,
 		damage: 200,
-		initialSpeed: 0.6,
+		initialSpeed: 1.6,
 		maxHitCount: 1,
 		destroyAfterHit: true,
 		keepUntilAllHit: false,
-		hitRange: 0.9,
+		hitRange: 1,
 	},
 };
 

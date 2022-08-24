@@ -1,4 +1,5 @@
 import { Player, world } from "mojang-minecraft";
+import { runCommand } from "../api/common";
 import { send } from "../api/message";
 import { scores } from "../api/scoreboard";
 import { ADMIN_LIST, OVERWORLD } from "../common/constants";
@@ -7,8 +8,10 @@ import { setJob } from "../job/jobData";
 const initScoreboard = (player: Player) => {
 	scores.forEach(score => {
 		try {
-			OVERWORLD.runCommand(`scoreboard objectives add ${score} dummy`);
-		} catch(ignored) { return; }
+			runCommand(`scoreboard objectives add ${score} dummy`);
+		} catch {
+			return;
+		}
 	});
 
 	send(player, "Success");

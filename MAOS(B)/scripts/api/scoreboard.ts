@@ -4,6 +4,7 @@ const SCOREBOARD = world.scoreboard;
 
 export const scores = [
 	"job",
+	"team",
 	"maxhp",
 	"hp",
 	"maxmn",

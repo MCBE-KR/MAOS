@@ -2,8 +2,8 @@ import { Entity, EntityQueryOptions, EntityQueryScoreOptions, Location, Player, 
 import { minusStat } from "../job/jobApi";
 import { OVERWORLD } from "../common/constants";
 import { projectileData, projectileEvent, ProjectileIdentifier } from "../common/projectileData";
-import { JobEvent } from "../job/job";
-import { getScore } from "./scoreboard";
+import { getScore, Score, setScore } from "./scoreboard";
+import { run, runCommand, runCommandOn } from "./common";
 
 const PROJECTILE_NEAR = "maos_projectile_near";
 const projectiles: Projectile[] = [];
@@ -34,22 +34,24 @@ interface Projectile {
 	onTick?: {
 		[tick: number]: (self: Entity, summoner: Player) => void;
 	};
+	onLoopTick?: {
+		[tick: number]: (self: Entity, summoner: Player) => void;
+	};
 }
 
-const tickCallback = () => {
-	const length = projectiles.length;
-
+const realTickCallback = (startIndex?: number) => {
+	const length = startIndex ? 1 : projectiles.length;
 	if (!length) {
 		running = false;
 		world.events.tick.unsubscribe(tickCallback);
 	}
 
 	const removeIndexes = [];
-	for(let i = 0; i < length; i++) {
+	for(let i = startIndex || 0; i < length; i++) {
 		const projectile = projectiles[i];
 		const {
 			entity,
-			summoner: summoner,
+			summoner,
 			damage,
 			vector,
 			scoreFlags,
@@ -62,7 +64,8 @@ const tickCallback = () => {
 		let tick = projectile.tick;
 
 		try {
-			entity.runCommand(`testfor @s`);
+			runCommandOn(entity, "testfor @s");
+			runCommandOn(summoner, "testfor @s");
 		} catch {
 			removeIndexes.push(i);
 			continue;
@@ -76,59 +79,106 @@ const tickCallback = () => {
 			removeIndexes.push(i);
 		}
 
+		projectile.onTick?.[0](entity, summoner);
+
 		const onTick = projectile.onTick?.[tick];
 		if(onTick) {
 			onTick(entity, summoner);
 		}
 
-		const { location, rotation } = entity;
-		const newLocation = new Location(
-			location.x + vector.x,
-			location.y + vector.y,
-			location.z + vector.z,
+		const { x: vectorX, y: vectorY, z: vectorZ } = vector;
+		const maxVector = Math.max(
+			Math.abs(vectorX),
+			Math.abs(vectorY),
+			Math.abs(vectorZ),
 		);
 		
-		entity.teleport(newLocation, OVERWORLD, rotation.x, rotation.y);
+		const loopCount = Math.abs(Math.ceil(maxVector / 0.4));
+		const xPerLoop = vectorX / loopCount;
+		const yPerLoop = vectorY / loopCount;
+		const zPerLoop = vectorZ / loopCount;
 
-		let targets: Player[] | null = null;
-		if(typeof hitRange === "number") {
-			try {
-				// 다른 팀만 가져오도록
-				entity.runCommand(`tag @a[r=${hitRange}] add ${PROJECTILE_NEAR}`);
+		const targets: Player[] = [];
+		for(let j = 0; j < loopCount; j++) {
+			const { location, rotation } = entity;
+			
+			entity.teleport(
+				new Location(
+					location.x + xPerLoop,
+					location.y + yPerLoop,
+					location.z + zPerLoop,
+				),
+				entity.dimension,
+				rotation.x,
+				rotation.y,
+			);
 
-				const scoreOptions: EntityQueryScoreOptions[] = [];
-				if (scoreFlags) {
-					for (const scoreFlag of scoreFlags) {
-						const scoreOption = new EntityQueryScoreOptions();
-						scoreOption.objective = scoreFlag.objectiveId;
-						scoreOption.minScore = scoreFlag.minScore;
-						scoreOption.maxScore = scoreFlag.maxScore;
-						scoreFlag.exclude = scoreFlag.exclude;
+			projectile.onLoopTick?.[0](entity, summoner);
 
-						scoreOptions.push(scoreOption);
+			const onLoopTick = projectile.onLoopTick?.[tick];
+			if(onLoopTick) {
+				onLoopTick(entity, summoner);
+			}
+
+			if(typeof hitRange === "number") {
+				try {
+					runCommandOn(entity, `execute at @s positioned ~ ~-0.935 ~ run tag @a[r=${hitRange}] add ${PROJECTILE_NEAR}`, true);
+					
+					const scoreOptions: EntityQueryScoreOptions[] = [];
+					if (scoreFlags) {
+						for (const scoreFlag of scoreFlags) {
+							const scoreOption = new EntityQueryScoreOptions();
+							scoreOption.objective = scoreFlag.objectiveId;
+							scoreOption.minScore = scoreFlag.minScore;
+							scoreOption.maxScore = scoreFlag.maxScore;
+							scoreFlag.exclude = scoreFlag.exclude;
+
+							scoreOptions.push(scoreOption);
+						}
+					}
+
+					let objectiveId: Score = "team";
+					const teamScore = getScore(entity, objectiveId);
+					
+					let defaultScoreOption = new EntityQueryScoreOptions();
+					defaultScoreOption.objective = objectiveId;
+					defaultScoreOption.minScore = teamScore;
+					defaultScoreOption.maxScore = teamScore;
+					defaultScoreOption.exclude = true;
+					scoreOptions.push(defaultScoreOption);
+
+					objectiveId = "job";
+					defaultScoreOption = new EntityQueryScoreOptions();
+					defaultScoreOption.objective = objectiveId; 
+					defaultScoreOption.minScore = 1;
+					scoreOptions.push(defaultScoreOption);
+
+					const option = new EntityQueryOptions();
+					option.tags = [PROJECTILE_NEAR];
+					option.type = "minecraft:player";
+					option.closest = maxHitCount - currentHitCount;
+					option.scoreOptions = scoreOptions;
+
+					for(const target of entity.dimension.getEntities(option)) {
+						targets.push(target as Player);
+					}
+				} catch(e) {
+					console.warn(e);
+				} finally {
+					runCommand(`tag @e remove ${PROJECTILE_NEAR}`, true);
+				}
+			} else {
+				const hitTargets = hitRange();
+
+				if(hitTargets) {
+					for(const target of hitTargets) {
+						targets.push(target);
 					}
 				}
-
-				const option = new EntityQueryOptions();
-				option.tags = [PROJECTILE_NEAR];
-				option.type = "minecraft:player";
-				option.closest = maxHitCount - currentHitCount;
-				option.scoreOptions = scoreOptions;
-
-				targets = Array.from(OVERWORLD.getEntities(option)) as Player[];
-			// tslint:disable-next-line: no-empty
-			} catch {
-			} finally {
-				try {
-					OVERWORLD.runCommand(`tag @e remove ${PROJECTILE_NEAR}`);
-				// tslint:disable-next-line: no-empty
-				} catch {}
 			}
-		} else {
-			targets = hitRange();
 		}
 
-		const hitEntitiesCount = targets?.length;
+		const hitEntitiesCount = targets.length;
 		if(!hitEntitiesCount) {
 			continue;
 		}
@@ -138,11 +188,7 @@ const tickCallback = () => {
 		}
 
 		for(const target of targets!) {
-			try {
-				summoner.runCommand(`damage "${target.name}" 1 entity_attack`);
-			// tslint:disable-next-line: no-empty
-			} catch {}
-
+			runCommandOn(summoner, `damage "${target.name}" 1 entity_attack`, true);
 			minusStat(target, damage, "hp", "maxhp");
 		}
 
@@ -155,28 +201,39 @@ const tickCallback = () => {
 	}
 
 	for(const index of removeIndexes) {
-		const projectile = projectiles.splice(index, 1)[0];
-		projectile.entity.triggerEvent("maos:despawn");
+		run(() => {
+			const projectile = projectiles.splice(index, 1)[0];
+			projectile.entity.triggerEvent("maos:despawn");
+		});
 	}
+};
+
+const tickCallback = () => {
+	realTickCallback();
 };
 
 export const addProjectile = (
 	identifier: ProjectileIdentifier,
 	summoner: Player,
 	viewVector: Vector,
-	offset: Vector,
+	offset?: Vector,
 	onHit?: (self: Entity, summoner: Player, targets: Player[]) => void,
 	onTick?: {
+		[tick: number]: (self: Entity, summoner: Player) => void;
+	},
+	onLoopTick?: {
 		[tick: number]: (self: Entity, summoner: Player) => void;
 	},
 ) => {
 	const location = summoner.location;
 	const spawnLocation = new Location(
-		location.x + offset.x,
-		location.y + offset.y,
-		location.z + offset.z,
+		location.x + (offset?.x || 0),
+		location.y + (offset?.y || 1.6),
+		location.z + (offset?.z || 0),
 	);
+
 	const entity = OVERWORLD.spawnEntity(identifier, spawnLocation);
+	setScore(entity, "team", getScore(summoner, "team"));
 
 	const {
 		life,
@@ -200,8 +257,9 @@ export const addProjectile = (
 		destroyAfterHit,
 		keepUntilAllHit,
 		hitRange,
-		onHit,
 		onTick,
+		onLoopTick,
+		onHit,
 		tick: 0,
 		currentHitCount: 0,
 		vector: new Vector(
