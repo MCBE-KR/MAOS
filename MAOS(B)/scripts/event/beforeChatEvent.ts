@@ -2,7 +2,7 @@ import { Player, world } from "mojang-minecraft";
 import { runCommand } from "../api/common";
 import { send } from "../api/message";
 import { scores } from "../api/scoreboard";
-import { ADMIN_LIST, OVERWORLD } from "../common/constants";
+import { ADMIN_LIST } from "../common/constants";
 import { setJob } from "../job/jobData";
 
 const initScoreboard = (player: Player) => {

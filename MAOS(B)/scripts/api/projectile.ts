@@ -1,7 +1,7 @@
-import { Entity, EntityQueryOptions, EntityQueryScoreOptions, Location, Player, Vector, world } from "mojang-minecraft";
+import { Entity, EntityQueryOptions, EntityQueryScoreOptions, Location, MolangVariableMap, Player, Vector, world } from "mojang-minecraft";
 import { minusStat } from "../job/jobApi";
 import { OVERWORLD } from "../common/constants";
-import { projectileData, projectileEvent, ProjectileIdentifier } from "../common/projectileData";
+import { Projectile, projectileData, projectileEvent, ProjectileIdentifier } from "../common/projectileData";
 import { getScore, Score, setScore } from "./scoreboard";
 import { run, runCommand, runCommandOn } from "./common";
 
@@ -9,35 +9,6 @@ const PROJECTILE_NEAR = "maos_projectile_near";
 const projectiles: Projectile[] = [];
 
 let running = false;
-
-interface Projectile {
-	entity: Entity;
-	summoner: Player;
-	life: number;
-	damage: number;
-	vector: Vector;
-	tick: number;
-	scoreFlags?: [
-		{
-			objectiveId: string;
-			minScore: number;
-			maxScore: number;
-			exclude: boolean;
-		},
-	];
-	currentHitCount: number;
-	maxHitCount: number;
-	destroyAfterHit: boolean;
-	keepUntilAllHit: boolean;
-	hitRange: number | (() => Player[] | null);
-	onHit?: (self: Entity, summoner: Player, targets: Player[]) => void;
-	onTick?: {
-		[tick: number]: (self: Entity, summoner: Player) => void;
-	};
-	onLoopTick?: {
-		[tick: number]: (self: Entity, summoner: Player) => void;
-	};
-}
 
 const realTickCallback = (startIndex?: number) => {
 	const length = startIndex ? 1 : projectiles.length;
@@ -48,42 +19,52 @@ const realTickCallback = (startIndex?: number) => {
 
 	const removeIndexes = [];
 	for(let i = startIndex || 0; i < length; i++) {
-		const projectile = projectiles[i];
+		const projectileObj = projectiles[i];
 		const {
-			entity,
+			projectile,
 			summoner,
 			damage,
 			vector,
+			projectileParticle,
+			molangVariableMap,
 			scoreFlags,
 			hitRange,
 			maxHitCount,
 			onHit,
-		} = projectile;
+		} = projectileObj;
 
-		let currentHitCount = projectile.currentHitCount;
-		let tick = projectile.tick;
+		let currentHitCount = projectileObj.currentHitCount;
+		let tick = projectileObj.tick;
 
 		try {
-			runCommandOn(entity, "testfor @s");
+			runCommandOn(projectile, "testfor @s");
 			runCommandOn(summoner, "testfor @s");
 		} catch {
 			removeIndexes.push(i);
 			continue;
 		}
 
-		projectile.tick = ++tick;
-		if (tick === projectile.life) {
+		projectileObj.tick = ++tick;
+		if (tick === projectileObj.life) {
 			const jobScore = getScore(summoner, "job");
-			projectileEvent[jobScore]?.DESPAWN_PROJECTILE(summoner, entity);
+			projectileEvent[jobScore]?.DESPAWN_PROJECTILE(summoner, projectileObj);
 
 			removeIndexes.push(i);
 		}
 
-		projectile.onTick?.[0](entity, summoner);
+		if(projectileParticle) {
+			projectile.dimension.spawnParticle(
+				projectileParticle,
+				projectile.location,
+				molangVariableMap!,
+			);
+		}
 
-		const onTick = projectile.onTick?.[tick];
+		projectileObj.onTick?.[0](projectile, summoner);
+
+		const onTick = projectileObj.onTick?.[tick];
 		if(onTick) {
-			onTick(entity, summoner);
+			onTick(projectile, summoner);
 		}
 
 		const { x: vectorX, y: vectorY, z: vectorZ } = vector;
@@ -100,29 +81,29 @@ const realTickCallback = (startIndex?: number) => {
 
 		const targets: Player[] = [];
 		for(let j = 0; j < loopCount; j++) {
-			const { location, rotation } = entity;
+			const { location, rotation } = projectile;
 			
-			entity.teleport(
+			projectile.teleport(
 				new Location(
 					location.x + xPerLoop,
 					location.y + yPerLoop,
 					location.z + zPerLoop,
 				),
-				entity.dimension,
+				projectile.dimension,
 				rotation.x,
 				rotation.y,
 			);
 
-			projectile.onLoopTick?.[0](entity, summoner);
+			projectileObj.onLoopTick?.[0](projectile, summoner);
 
-			const onLoopTick = projectile.onLoopTick?.[tick];
+			const onLoopTick = projectileObj.onLoopTick?.[tick];
 			if(onLoopTick) {
-				onLoopTick(entity, summoner);
+				onLoopTick(projectile, summoner);
 			}
 
 			if(typeof hitRange === "number") {
 				try {
-					runCommandOn(entity, `execute at @s positioned ~ ~-0.935 ~ run tag @a[r=${hitRange}] add ${PROJECTILE_NEAR}`, true);
+					runCommandOn(projectile, `execute at @s positioned ~ ~-0.935 ~ run tag @a[r=${hitRange}] add ${PROJECTILE_NEAR}`, true);
 					
 					const scoreOptions: EntityQueryScoreOptions[] = [];
 					if (scoreFlags) {
@@ -138,7 +119,7 @@ const realTickCallback = (startIndex?: number) => {
 					}
 
 					let objectiveId: Score = "team";
-					const teamScore = getScore(entity, objectiveId);
+					const teamScore = getScore(projectile, objectiveId);
 					
 					let defaultScoreOption = new EntityQueryScoreOptions();
 					defaultScoreOption.objective = objectiveId;
@@ -159,7 +140,7 @@ const realTickCallback = (startIndex?: number) => {
 					option.closest = maxHitCount - currentHitCount;
 					option.scoreOptions = scoreOptions;
 
-					for(const target of entity.dimension.getEntities(option)) {
+					for(const target of projectile.dimension.getEntities(option)) {
 						targets.push(target as Player);
 					}
 				} catch(e) {
@@ -184,7 +165,7 @@ const realTickCallback = (startIndex?: number) => {
 		}
 
 		if(onHit) {
-			onHit(entity, summoner, targets!);
+			onHit(projectile, summoner, targets!);
 		}
 
 		for(const target of targets!) {
@@ -193,17 +174,17 @@ const realTickCallback = (startIndex?: number) => {
 		}
 
 		currentHitCount += hitEntitiesCount;
-		projectile.currentHitCount = currentHitCount;
+		projectileObj.currentHitCount = currentHitCount;
 		
-		if(projectile.destroyAfterHit || maxHitCount === currentHitCount) {
+		if(projectileObj.destroyAfterHit || maxHitCount === currentHitCount) {
 			removeIndexes.push(i);
 		}
 	}
 
 	for(const index of removeIndexes) {
 		run(() => {
-			const projectile = projectiles.splice(index, 1)[0];
-			projectile.entity.triggerEvent("maos:despawn");
+			const projectileObj = projectiles.splice(index, 1)[0];
+			projectileObj.projectile.triggerEvent("maos:despawn");
 		});
 	}
 };
@@ -232,8 +213,8 @@ export const addProjectile = (
 		location.z + (offset?.z || 0),
 	);
 
-	const entity = OVERWORLD.spawnEntity(identifier, spawnLocation);
-	setScore(entity, "team", getScore(summoner, "team"));
+	const projectile = OVERWORLD.spawnEntity(identifier, spawnLocation);
+	setScore(projectile, "team", getScore(summoner, "team"));
 
 	const {
 		life,
@@ -244,11 +225,18 @@ export const addProjectile = (
 		destroyAfterHit,
 		keepUntilAllHit,
 		hitRange,
+		steadyParticle,
+		molangVariableMap
 	} = projectileData[identifier];
 	const { x, y, z } = viewVector;
 
+	let projectileParticle;
+	if(steadyParticle === true) {
+		projectileParticle = identifier;
+	}
+
 	projectiles.push({
-		entity,
+		projectile,
 		summoner,
 		life,
 		damage,
@@ -256,6 +244,10 @@ export const addProjectile = (
 		maxHitCount,
 		destroyAfterHit,
 		keepUntilAllHit,
+		projectileParticle,
+		molangVariableMap: projectileParticle
+			? molangVariableMap || new MolangVariableMap()
+			: undefined,
 		hitRange,
 		onTick,
 		onLoopTick,

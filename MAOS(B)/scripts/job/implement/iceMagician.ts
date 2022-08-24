@@ -1,10 +1,9 @@
-import { Entity, MolangVariableMap, Player } from "mojang-minecraft";
+import { Player } from "mojang-minecraft";
 import { send } from "../../api/message";
 import { addProjectile } from "../../api/projectile";
 import { getScore, setScore } from "../../api/scoreboard";
-import { OVERWORLD } from "../../common/constants";
 import { Job } from "../job";
-import { checkCoolAndMn, minusStat, resetScore } from "../jobApi";
+import { checkCoolAndMn, minusMn, minusStat, resetScore, setCoolToBase } from "../jobApi";
 
 export class IceMagician extends Job {
 	initStat(player: Player): void {
@@ -38,41 +37,29 @@ export class IceMagician extends Job {
 	}
 
 	execute1(player: Player): void {
-		setScore(player, "cool1", getScore(player, "baseCool1"));
-		minusStat(player, 30, "mn", "maxmn");
+		setCoolToBase(player, 1);
+		minusMn(player, 30);
 
-		addProjectile(
-			"maos:j1s1",
-			player,
-			player.viewVector,
-			undefined,
-			undefined,
-			undefined,
-			{
-				0: (_self: Entity) => {
-					OVERWORLD.spawnParticle("maos:j1s1", _self.location, new MolangVariableMap());
-				}
-			}
-		);
+		addProjectile("maos:j1s1", player, player.viewVector);
 	}
 
 	execute2(player: Player): void {
-		setScore(player, "cool2", getScore(player, "baseCool2"));
-		minusStat(player, 50, "mn", "maxmn");
+		setCoolToBase(player, 2);
+		minusMn(player, 50);
 
 		send(player, "s2");
 	}
 
 	execute3(player: Player): void {
-		setScore(player, "cool3", getScore(player, "baseCool3"));
-		minusStat(player, 70, "mn", "maxmn");
+		setCoolToBase(player, 3);
+		minusMn(player, 70);
 
 		send(player, "s3");
 	}
 
 	execute4(player: Player): void {
-		setScore(player, "cool4", getScore(player, "baseCool4"));
-		minusStat(player, 100, "mn", "maxmn");
+		setCoolToBase(player, 4);
+		minusMn(player, 100);
 
 		send(player, "s4");
 	}

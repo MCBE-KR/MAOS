@@ -30,6 +30,22 @@ export const minusStat = (
 	addStat(player, -stat, objectiveId, maxObjectiveId);
 };
 
+export const addHp = (player: Player, hp: number) => {
+	addStat(player, hp, "hp", "maxhp");
+};
+
+export const minusHp = (player: Player, hp: number) => {
+	minusStat(player, hp, "hp", "maxhp");
+};
+
+export const addMn = (player: Player, mn: number) => {
+	addStat(player, mn, "mn", "maxmn");
+};
+
+export const minusMn = (player: Player, mn: number) => {
+	minusStat(player, mn, "mn", "maxmn");
+};
+
 export const checkCool = (player: Player, skillNumber: number) => {
 	let baseObjectiveId: Score;
 	let objectiveId: Score;
@@ -99,6 +115,39 @@ export const checkCoolAndMn = (player: Player, skillNumber: number, mn: number) 
 	}
 
 	return checkMn(player, skillNumber, mn);
+};
+
+export const setCoolToBase = (player: Player, skillIndex: 1 | 2 | 3 | 4) => {
+	let cool: Score;
+	let baseCool: Score;
+
+	switch(skillIndex) {
+		case 1:
+			cool = "cool1";
+			baseCool = "baseCool1";
+
+			break;
+
+		case 2:
+			cool = "cool2";
+			baseCool = "baseCool2";
+
+			break;
+
+		case 3:
+			cool = "cool3";
+			baseCool = "baseCool3";
+
+			break;
+
+		default:
+			cool = "cool4";
+			baseCool = "baseCool4";
+
+			break;
+	}
+	
+	setScore(player, cool, getScore(player, baseCool));
 };
 
 export const resetScore = (player: Player) => {
