@@ -1,4 +1,4 @@
-import { Entity, MinecraftBlockTypes, MolangVariableMap, Player, Vector } from "mojang-minecraft";
+import * as mc from "mojang-minecraft";
 import { JobEvent } from "../job/job";
 import { addStat } from "../job/jobApi";
 
@@ -19,17 +19,17 @@ export interface ProjectileData {
 	maxHitCount: number;
 	destroyAfterHit: boolean;
 	keepUntilAllHit: boolean;
-	hitRange: number | (() => Player[]);
+	hitRange: number | (() => mc.Player[]);
 	steadyParticle?: string | true;
-	molangVariableMap?: MolangVariableMap;
+	molangVariableMap?: mc.MolangVariableMap;
 }
 
 export interface Projectile {
-	projectile: Entity;
-	summoner: Player;
+	projectile: mc.Entity;
+	summoner: mc.Player;
 	life: number;
 	damage: number;
-	vector: Vector;
+	vector: mc.Vector;
 	tick: number;
 	scoreFlags?: [
 		{
@@ -43,15 +43,15 @@ export interface Projectile {
 	maxHitCount: number;
 	destroyAfterHit: boolean;
 	keepUntilAllHit: boolean;
-	hitRange: number | (() => Player[] | null);
+	hitRange: number | (() => mc.Player[] | null);
 	projectileParticle?: string;
-	molangVariableMap?: MolangVariableMap;
-	onHit?: (self: Entity, summoner: Player, targets: Player[]) => void;
+	molangVariableMap?: mc.MolangVariableMap;
+	onHit?: (self: mc.Entity, summoner: mc.Player, targets: mc.Player[]) => void;
 	onTick?: {
-		[tick: number]: (self: Entity, summoner: Player) => void;
+		[tick: number]: (self: mc.Entity, summoner: mc.Player) => void;
 	};
 	onLoopTick?: {
-		[tick: number]: (self: Entity, summoner: Player) => void;
+		[tick: number]: (self: mc.Entity, summoner: mc.Player) => void;
 	};
 }
 
@@ -70,66 +70,66 @@ export const projectileData: {
 	},
 };
 
-export const passableBlockTypes: Set<MinecraftBlockTypes> = new Set([
-	MinecraftBlockTypes.air,
-	MinecraftBlockTypes.water,
-	MinecraftBlockTypes.flowingWater,
-	MinecraftBlockTypes.conduit,
-	MinecraftBlockTypes.wallSign,
-	MinecraftBlockTypes.standingSign,
-	MinecraftBlockTypes.sapling,
-	MinecraftBlockTypes.grass,
-	MinecraftBlockTypes.tallgrass,
-	MinecraftBlockTypes.seagrass,
-	MinecraftBlockTypes.wallBanner,
-	MinecraftBlockTypes.standingBanner,
-	MinecraftBlockTypes.structureVoid,
-	MinecraftBlockTypes.redMushroom,
-	MinecraftBlockTypes.brownMushroom,
-	MinecraftBlockTypes.wheat,
-	MinecraftBlockTypes.cactus,
-	MinecraftBlockTypes.carrots,
-	MinecraftBlockTypes.potatoes,
-	MinecraftBlockTypes.melonStem,
-	MinecraftBlockTypes.pumpkinStem,
-	MinecraftBlockTypes.warpedStem,
-	MinecraftBlockTypes.crimsonStem,
-	MinecraftBlockTypes.vine,
-	MinecraftBlockTypes.caveVines,
-	MinecraftBlockTypes.caveVinesBodyWithBerries,
-	MinecraftBlockTypes.caveVinesHeadWithBerries,
-	MinecraftBlockTypes.twistingVines,
-	MinecraftBlockTypes.redstoneWire,
-	MinecraftBlockTypes.torch,
-	MinecraftBlockTypes.redstoneTorch,
-	MinecraftBlockTypes.redFlower,
-	MinecraftBlockTypes.yellowFlower,
-	MinecraftBlockTypes.warpedFungus,
-	MinecraftBlockTypes.crimsonFungus,
-	MinecraftBlockTypes.frame,
-	MinecraftBlockTypes.rail,
-	MinecraftBlockTypes.goldenRail,
-	MinecraftBlockTypes.detectorRail,
-	MinecraftBlockTypes.activatorRail,
-	MinecraftBlockTypes.lava,
-	MinecraftBlockTypes.bubbleColumn,
-	MinecraftBlockTypes.carpet,
-	MinecraftBlockTypes.azalea,
-	MinecraftBlockTypes.beetroot,
-	MinecraftBlockTypes.bigDripleaf,
-	MinecraftBlockTypes.smallDripleafBlock,
-	MinecraftBlockTypes.coloredTorchBp,
-	MinecraftBlockTypes.coloredTorchRg,
+export const passableBlockTypes: Set<mc.MinecraftBlockTypes> = new Set([
+	mc.MinecraftBlockTypes.air,
+	mc.MinecraftBlockTypes.water,
+	mc.MinecraftBlockTypes.flowingWater,
+	mc.MinecraftBlockTypes.conduit,
+	mc.MinecraftBlockTypes.wallSign,
+	mc.MinecraftBlockTypes.standingSign,
+	mc.MinecraftBlockTypes.sapling,
+	mc.MinecraftBlockTypes.grass,
+	mc.MinecraftBlockTypes.tallgrass,
+	mc.MinecraftBlockTypes.seagrass,
+	mc.MinecraftBlockTypes.wallBanner,
+	mc.MinecraftBlockTypes.standingBanner,
+	mc.MinecraftBlockTypes.structureVoid,
+	mc.MinecraftBlockTypes.redMushroom,
+	mc.MinecraftBlockTypes.brownMushroom,
+	mc.MinecraftBlockTypes.wheat,
+	mc.MinecraftBlockTypes.cactus,
+	mc.MinecraftBlockTypes.carrots,
+	mc.MinecraftBlockTypes.potatoes,
+	mc.MinecraftBlockTypes.melonStem,
+	mc.MinecraftBlockTypes.pumpkinStem,
+	mc.MinecraftBlockTypes.warpedStem,
+	mc.MinecraftBlockTypes.crimsonStem,
+	mc.MinecraftBlockTypes.vine,
+	mc.MinecraftBlockTypes.caveVines,
+	mc.MinecraftBlockTypes.caveVinesBodyWithBerries,
+	mc.MinecraftBlockTypes.caveVinesHeadWithBerries,
+	mc.MinecraftBlockTypes.twistingVines,
+	mc.MinecraftBlockTypes.redstoneWire,
+	mc.MinecraftBlockTypes.torch,
+	mc.MinecraftBlockTypes.redstoneTorch,
+	mc.MinecraftBlockTypes.redFlower,
+	mc.MinecraftBlockTypes.yellowFlower,
+	mc.MinecraftBlockTypes.warpedFungus,
+	mc.MinecraftBlockTypes.crimsonFungus,
+	mc.MinecraftBlockTypes.frame,
+	mc.MinecraftBlockTypes.rail,
+	mc.MinecraftBlockTypes.goldenRail,
+	mc.MinecraftBlockTypes.detectorRail,
+	mc.MinecraftBlockTypes.activatorRail,
+	mc.MinecraftBlockTypes.lava,
+	mc.MinecraftBlockTypes.bubbleColumn,
+	mc.MinecraftBlockTypes.carpet,
+	mc.MinecraftBlockTypes.azalea,
+	mc.MinecraftBlockTypes.beetroot,
+	mc.MinecraftBlockTypes.bigDripleaf,
+	mc.MinecraftBlockTypes.smallDripleafBlock,
+	mc.MinecraftBlockTypes.coloredTorchBp,
+	mc.MinecraftBlockTypes.coloredTorchRg,
 ]);
 
 export const projectileEvent: {
 	[jobScore: number]: {
-		[event in JobEvent]: (summoner: Player, projectilObj: Projectile) => void;
+		[event in JobEvent]: (summoner: mc.Player, projectilObj: Projectile) => void;
 	};
 } = {
 	// IceMagician
 	1: {
-		DESPAWN_PROJECTILE: (summoner: Player) => {
+		DESPAWN_PROJECTILE: (summoner: mc.Player) => {
 			addStat(summoner, 5, "mn", "maxmn");
 		},
 	},

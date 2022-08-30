@@ -1,6 +1,7 @@
 chcp 65001
 
 cd MAOS(B)
+dpdm --no-warning --no-tree --exit-code circular:1 ./scripts
 call tsc
 
 cd ../

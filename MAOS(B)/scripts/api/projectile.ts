@@ -112,7 +112,7 @@ const realTickCallback = (startIndex?: number) => {
 							scoreOption.objective = scoreFlag.objectiveId;
 							scoreOption.minScore = scoreFlag.minScore;
 							scoreOption.maxScore = scoreFlag.maxScore;
-							scoreFlag.exclude = scoreFlag.exclude;
+							scoreOption.exclude = scoreFlag.exclude;
 
 							scoreOptions.push(scoreOption);
 						}

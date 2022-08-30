@@ -33,42 +33,38 @@ export const run = (func: any) => {
 	} catch {}
 };
 
+export const handleError = (e: unknown, ignoreError: boolean) => {
+	if(!ignoreError) {
+		throw e;
+	}
+};
+
 export const runCommand = (command: string, ignoreError: boolean = false, dimension: Dimension = OVERWORLD) => {
 	try {
 		dimension.runCommand(command);
 	} catch(e) {
-		if(!ignoreError) {
-			throw e;
-		}
+		handleError(e, ignoreError);
 	}
 };
 
 export const runCommandAsync = (command: string, ignoreError: boolean = false, dimension: Dimension = OVERWORLD) => {
-	try {
-		dimension.runCommandAsync(command);
-	} catch (e) {
-		if (!ignoreError) {
-			throw e;
-		}
-	}
+	dimension.runCommandAsync(command)
+		.catch(e => {
+			handleError(e, ignoreError);
+		});
 };
 
 export const runCommandOn = (entity: Entity, command: string, ignoreError: boolean = false) => {
 	try {
 		entity.runCommand(command);
 	} catch(e) {
-		if(!ignoreError) {
-			throw e;
-		}
+		handleError(e, ignoreError);
 	}
 };
 
 export const runCommandAsyncOn = (entity: Entity, command: string, ignoreError: boolean = false) => {
-	try {
-		entity.runCommandAsync(command);
-	} catch(e) {
-		if(!ignoreError) {
-			throw e;
-		}
-	}
+	entity.runCommandAsync(command)
+		.catch(e => {
+			handleError(e, ignoreError);
+		});
 };
