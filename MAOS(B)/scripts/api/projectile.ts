@@ -1,7 +1,7 @@
-import { Entity, EntityQueryOptions, EntityQueryScoreOptions, Location, MolangVariableMap, Player, Vector, world } from "mojang-minecraft";
+import { Entity, EntityQueryOptions, EntityQueryScoreOptions, BlockLocation, Location, MolangVariableMap, Player, Vector, world } from "mojang-minecraft";
 import { minusStat } from "../job/jobApi";
 import { OVERWORLD } from "../common/constants";
-import { Projectile, projectileData, projectileEvent, ProjectileIdentifier } from "../common/projectileData";
+import { passableBlockTypes, Projectile, projectileData, projectileEvent, ProjectileIdentifier } from "../common/projectileData";
 import { getScore, Score, setScore } from "./scoreboard";
 import { run, runCommand, runCommandOn } from "./common";
 
@@ -10,15 +10,15 @@ const projectiles: Projectile[] = [];
 
 let running = false;
 
-const realTickCallback = (startIndex?: number) => {
-	const length = startIndex ? 1 : projectiles.length;
+const tickCallback = () => {
+	const length = projectiles.length;
 	if (!length) {
 		running = false;
 		world.events.tick.unsubscribe(tickCallback);
 	}
 
 	const removeIndexes = [];
-	for(let i = startIndex || 0; i < length; i++) {
+	for(let i = 0; i < length; i++) {
 		const projectileObj = projectiles[i];
 		const {
 			projectile,
@@ -32,6 +32,8 @@ const realTickCallback = (startIndex?: number) => {
 			maxHitCount,
 			onHit,
 		} = projectileObj;
+
+		const dimension = projectile.dimension;
 
 		let currentHitCount = projectileObj.currentHitCount;
 		let tick = projectileObj.tick;
@@ -53,7 +55,7 @@ const realTickCallback = (startIndex?: number) => {
 		}
 
 		if(projectileParticle) {
-			projectile.dimension.spawnParticle(
+			dimension.spawnParticle(
 				projectileParticle,
 				projectile.location,
 				molangVariableMap!,
@@ -79,9 +81,23 @@ const realTickCallback = (startIndex?: number) => {
 		const yPerLoop = vectorY / loopCount;
 		const zPerLoop = vectorZ / loopCount;
 
+		let prevBlockLocation: BlockLocation | null = null;
 		const targets: Player[] = [];
 		for(let j = 0; j < loopCount; j++) {
 			const { location, rotation } = projectile;
+
+			const blockLocation = new BlockLocation(location.x, location.y, location.z);
+			if(!prevBlockLocation?.equals(blockLocation)) {
+				prevBlockLocation = blockLocation;
+				const block = dimension.getBlock(blockLocation);
+
+				if (!passableBlockTypes.has(block.type)) {
+					targets.splice(0, targets.length);
+					removeIndexes.push(i);
+
+					break;
+				}
+			}
 			
 			projectile.teleport(
 				new Location(
@@ -89,7 +105,7 @@ const realTickCallback = (startIndex?: number) => {
 					location.y + yPerLoop,
 					location.z + zPerLoop,
 				),
-				projectile.dimension,
+				dimension,
 				rotation.x,
 				rotation.y,
 			);
@@ -140,7 +156,7 @@ const realTickCallback = (startIndex?: number) => {
 					option.closest = maxHitCount - currentHitCount;
 					option.scoreOptions = scoreOptions;
 
-					for(const target of projectile.dimension.getEntities(option)) {
+					for(const target of dimension.getEntities(option)) {
 						targets.push(target as Player);
 					}
 				} catch(e) {
@@ -189,10 +205,6 @@ const realTickCallback = (startIndex?: number) => {
 	}
 };
 
-const tickCallback = () => {
-	realTickCallback();
-};
-
 export const addProjectile = (
 	identifier: ProjectileIdentifier,
 	summoner: Player,
@@ -206,7 +218,7 @@ export const addProjectile = (
 		[tick: number]: (self: Entity, summoner: Player) => void;
 	},
 ) => {
-	const location = summoner.location;
+	const { location, rotation } = summoner;
 	const spawnLocation = new Location(
 		location.x + (offset?.x || 0),
 		location.y + (offset?.y || 1.6),
@@ -214,6 +226,8 @@ export const addProjectile = (
 	);
 
 	const projectile = OVERWORLD.spawnEntity(identifier, spawnLocation);
+	projectile.teleport(projectile.location, projectile.dimension, rotation.x, rotation.y);
+
 	setScore(projectile, "team", getScore(summoner, "team"));
 
 	const {
