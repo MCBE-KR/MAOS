@@ -28,6 +28,5 @@ world.events.itemUse.subscribe(event => {
 		}
 
 		skill(player);
-		return;
 	}
 });

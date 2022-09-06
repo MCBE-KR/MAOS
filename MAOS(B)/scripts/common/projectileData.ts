@@ -2,7 +2,11 @@ import * as mc from "mojang-minecraft";
 import { JobEvent } from "../job/job";
 import { addStat } from "../job/jobApi";
 
-export type ProjectileIdentifier = "maos:j1s1";
+const projectileIdentifier = [
+	"maos:j1s1",
+	"maos:j1s2"
+] as const;
+export type ProjectileIdentifier = typeof projectileIdentifier[number];
 
 export interface ProjectileData {
 	life: number;
@@ -68,6 +72,16 @@ export const projectileData: {
 		hitRange: 1,
 		steadyParticle: true
 	},
+	"maos:j1s2": {
+		life: 8,
+		damage: 150,
+		initialSpeed: 2,
+		maxHitCount: 1,
+		destroyAfterHit: true,
+		keepUntilAllHit: false,
+		hitRange: 1.1,
+		steadyParticle: true,
+	}
 };
 
 export const passableBlockTypes: Set<mc.MinecraftBlockTypes> = new Set([

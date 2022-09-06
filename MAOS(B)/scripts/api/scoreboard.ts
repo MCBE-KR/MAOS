@@ -19,6 +19,7 @@ export const scores = [
 	"cool2",
 	"cool3",
 	"cool4",
+	"stun",
 ] as const;
 export type Score = typeof scores[number];
 

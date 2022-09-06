@@ -1,9 +1,9 @@
 import { Player } from "mojang-minecraft";
 import { send } from "../../api/message";
 import { addProjectile } from "../../api/projectile";
-import { getScore, setScore } from "../../api/scoreboard";
+import { setScore } from "../../api/scoreboard";
 import { Job } from "../job";
-import { checkCoolAndMn, minusMn, minusStat, resetScore, setCoolToBase } from "../jobApi";
+import { checkCoolAndMn, minusMn, resetScore, setCoolToBase } from "../jobApi";
 
 export class IceMagician extends Job {
 	initStat(player: Player): void {
@@ -47,7 +47,16 @@ export class IceMagician extends Job {
 		setCoolToBase(player, 2);
 		minusMn(player, 50);
 
-		send(player, "s2");
+		addProjectile(
+			"maos:j1s2",
+			player,
+			player.viewVector,
+			undefined,
+			(_self, _summoner, targets) => {
+				const target = targets[0];
+				
+			}
+		);
 	}
 
 	execute3(player: Player): void {

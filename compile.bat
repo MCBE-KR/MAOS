@@ -14,6 +14,6 @@ xcopy "%cd%\MAOS(B)" %beh% /E /y
 
 del %res% /Q
 mkdir %res%
-@REM xcopy "%cd%\MAOS(R)" %res% /E /y
+xcopy "%cd%\MAOS(R)" %res% /E /y
 
 call dpdm --no-warning --no-tree --exit-code circular:1 ./MAOS(B)/scripts

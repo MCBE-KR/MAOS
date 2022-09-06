@@ -2,7 +2,7 @@
 	"format_version": "1.10.0",
 	"particle_effect": {
 		"description": {
-			"identifier": "maos:j1s1",
+			"identifier": "cmd:j1s2",
 			"basic_render_parameters": {
 				"material": "particles_blend",
 				"texture": "textures/particle/particles"
@@ -39,7 +39,7 @@
 				"expire_on_contact": true
 			},
 			"minecraft:particle_appearance_tinting": {
-				"color": [0.80784, 0.98824, 1, 0.54118]
+				"color": [0.52157, 0.73333, 1, 0.61176]
 			}
 		}
 	}

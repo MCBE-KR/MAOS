@@ -1,0 +1,28 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "cmd:j1s2",
+            "materials": {
+                "default": "arrow"
+            },
+            "textures": {
+                "default": "textures/entity/j1s2"
+            },
+            "geometry": {
+                "default": "geometry.j1s2"
+            },
+            "render_controllers": [
+                "controller.render.default"
+            ],
+            "animations": {
+                "normal": "animation.j1s2.normal"
+            },
+            "scripts": {
+                "animate": [
+                    "normal"
+                ]
+            }
+        }
+    }
+}

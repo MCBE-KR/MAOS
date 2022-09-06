@@ -83,6 +83,7 @@ const tickCallback = () => {
 
 		let prevBlockLocation: BlockLocation | null = null;
 		const targets: Player[] = [];
+		
 		for(let j = 0; j < loopCount; j++) {
 			const { location, rotation } = projectile;
 
@@ -119,18 +120,17 @@ const tickCallback = () => {
 
 			if(typeof hitRange === "number") {
 				try {
-					runCommandOn(projectile, `execute at @s positioned ~ ~-0.935 ~ run tag @a[r=${hitRange}] add ${PROJECTILE_NEAR}`, true);
+					runCommandOn(projectile, `execute at @s positioned ~ ~-0.935 ~ run tag @e[family=game, r=${hitRange}] add ${PROJECTILE_NEAR}`, true);
 					
 					const scoreOptions: EntityQueryScoreOptions[] = [];
 					if (scoreFlags) {
 						for (const scoreFlag of scoreFlags) {
-							const scoreOption = new EntityQueryScoreOptions();
-							scoreOption.objective = scoreFlag.objectiveId;
-							scoreOption.minScore = scoreFlag.minScore;
-							scoreOption.maxScore = scoreFlag.maxScore;
-							scoreOption.exclude = scoreFlag.exclude;
-
-							scoreOptions.push(scoreOption);
+							scoreOptions.push({
+								objective: scoreFlag.objectiveId,
+								minScore: scoreFlag.minScore,
+								maxScore: scoreFlag.maxScore,
+								exclude: scoreFlag.exclude,
+							});
 						}
 					}
 
@@ -150,11 +150,12 @@ const tickCallback = () => {
 					defaultScoreOption.minScore = 1;
 					scoreOptions.push(defaultScoreOption);
 
-					const option = new EntityQueryOptions();
-					option.tags = [PROJECTILE_NEAR];
-					option.type = "minecraft:player";
-					option.closest = maxHitCount - currentHitCount;
-					option.scoreOptions = scoreOptions;
+					const option: EntityQueryOptions = {
+						scoreOptions,
+						tags: [PROJECTILE_NEAR],
+						families: ["game"],
+						closest: maxHitCount - currentHitCount
+					};
 
 					for(const target of dimension.getEntities(option)) {
 						targets.push(target as Player);
@@ -181,10 +182,10 @@ const tickCallback = () => {
 		}
 
 		if(onHit) {
-			onHit(projectile, summoner, targets!);
+			onHit(projectile, summoner, targets);
 		}
 
-		for(const target of targets!) {
+		for(const target of targets) {
 			runCommandOn(summoner, `damage "${target.name}" 1 entity_attack`, true);
 			minusStat(target, damage, "hp", "maxhp");
 		}

@@ -9,7 +9,7 @@
   "author": "namsic",
   "license": "ISC",
   "dependencies": {
-    "@types/mojang-minecraft": "^0.1.6",
+    "@types/mojang-minecraft": "^0.1.7",
     "@types/mojang-minecraft-ui": "^0.1.0"
   }
 }

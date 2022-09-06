@@ -1,0 +1,18 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.j1s2.normal": {
+			"loop": true,
+			"animation_length": 0.4,
+			"override_previous_animation": false,
+			"bones": {
+				"bone": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.4": [0, 0, 360]
+					}
+				}
+			}
+		}
+	}
+}
