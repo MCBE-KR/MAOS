@@ -12,7 +12,7 @@ const onTick = () => {
 		try {
 			let cool = getScore(player, "cool1");
 			if(cool > 0) {
-				setScore(player, "cool1", cool - 1);
+				setScore(player, "cool1", cool - 1, true);
 
 				if(cool === 1) {
 					send(player, getCoolResetText(1));
@@ -21,7 +21,7 @@ const onTick = () => {
 			
 			cool = getScore(player, "cool2");
 			if (cool > 0) {
-				setScore(player, "cool2", cool - 1);
+				setScore(player, "cool2", cool - 1, true);
 
 				if (cool === 1) {
 					send(player, getCoolResetText(2));
@@ -30,7 +30,7 @@ const onTick = () => {
 
 			cool = getScore(player, "cool3");
 			if (cool > 0) {
-				setScore(player, "cool3", cool - 1);
+				setScore(player, "cool3", cool - 1, true);
 
 				if (cool === 1) {
 					send(player, getCoolResetText(3));
@@ -39,7 +39,7 @@ const onTick = () => {
 
 			cool = getScore(player, "cool4");
 			if (cool > 0) {
-				setScore(player, "cool4", cool - 1);
+				setScore(player, "cool4", cool - 1, true);
 
 				if (cool === 1) {
 					send(player, getCoolResetText(4));
@@ -58,14 +58,14 @@ const onSec = () => {
 			let maxStat = getScore(player, "maxhp");
 			if(currentStat < maxStat) {
 				const hpRegen = getScore(player, "hpRegen");
-				setScore(player, "hp", Math.min(currentStat + hpRegen, maxStat));
+				setScore(player, "hp", Math.min(currentStat + hpRegen, maxStat), true);
 			}
 
 			currentStat = getScore(player, "mn");
 			maxStat = getScore(player, "maxmn");
 			if(currentStat < maxStat) {
 				const mnRegen = getScore(player, "mnRegen");
-				setScore(player, "mn", Math.min(currentStat + mnRegen, maxStat));
+				setScore(player, "mn", Math.min(currentStat + mnRegen, maxStat), true);
 			}
 		} catch(e) {
 			continue;

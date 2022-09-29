@@ -8,7 +8,7 @@ const projectileIdentifier = [
 ] as const;
 export type ProjectileIdentifier = typeof projectileIdentifier[number];
 
-export interface ProjectileData {
+export interface IProjectileData {
 	life: number;
 	damage: number;
 	initialSpeed: number;
@@ -23,12 +23,12 @@ export interface ProjectileData {
 	maxHitCount: number;
 	destroyAfterHit: boolean;
 	keepUntilAllHit: boolean;
-	hitRange: number | (() => mc.Player[]);
+	hitRange: number | (() => mc.Entity[]);
 	steadyParticle?: string | true;
 	molangVariableMap?: mc.MolangVariableMap;
 }
 
-export interface Projectile {
+export interface IProjectile {
 	projectile: mc.Entity;
 	summoner: mc.Player;
 	life: number;
@@ -47,10 +47,10 @@ export interface Projectile {
 	maxHitCount: number;
 	destroyAfterHit: boolean;
 	keepUntilAllHit: boolean;
-	hitRange: number | (() => mc.Player[] | null);
+	hitRange: number | (() => mc.Entity[] | null);
 	projectileParticle?: string;
 	molangVariableMap?: mc.MolangVariableMap;
-	onHit?: (self: mc.Entity, summoner: mc.Player, targets: mc.Player[]) => void;
+	onHit?: (self: mc.Entity, summoner: mc.Player, targets: mc.Entity[]) => void;
 	onTick?: {
 		[tick: number]: (self: mc.Entity, summoner: mc.Player) => void;
 	};
@@ -60,7 +60,7 @@ export interface Projectile {
 }
 
 export const projectileData: {
-	[identifier in ProjectileIdentifier]: ProjectileData;
+	[identifier in ProjectileIdentifier]: IProjectileData;
 } = {
 	"maos:j1s1": {
 		life: 15,
@@ -202,7 +202,7 @@ export const passableBlockTypes: Set<mc.MinecraftBlockTypes> = new Set([
 
 export const projectileEvent: {
 	[jobScore: number]: {
-		[event in JobEvent]: (summoner: mc.Player, projectilObj: Projectile) => void;
+		[event in JobEvent]: (summoner: mc.Player, projectilObj: IProjectile) => void;
 	};
 } = {
 	// IceMagician

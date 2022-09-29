@@ -1,10 +1,11 @@
 import { Player, world } from "mojang-minecraft";
+import { isPlayer } from "../api/common";
 import { send } from "../api/message";
 import { getJob } from "../job/jobData";
 
 world.events.itemUse.subscribe(event => {
 	const { source, item } = event;
-	if (source.id !== "minecraft:player") {
+	if (!isPlayer(source)) {
 		return;
 	}
 

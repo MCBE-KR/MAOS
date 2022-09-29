@@ -1,12 +1,12 @@
 import { Entity, EntityQueryOptions, EntityQueryScoreOptions, BlockLocation, Location, MolangVariableMap, Player, Vector, world } from "mojang-minecraft";
 import { minusStat } from "../job/jobApi";
 import { OVERWORLD } from "../common/constants";
-import { passableBlockTypes, Projectile, projectileData, projectileEvent, ProjectileIdentifier } from "../common/projectileData";
+import { passableBlockTypes, IProjectile, projectileData, projectileEvent, ProjectileIdentifier } from "../common/projectileData";
 import { getScore, Score, setScore } from "./scoreboard";
 import { run, runCommand, runCommandOn } from "./common";
 
 const PROJECTILE_NEAR = "maos_projectile_near";
-const projectiles: Projectile[] = [];
+const projectiles: IProjectile[] = [];
 
 let running = false;
 
@@ -82,7 +82,7 @@ const tickCallback = () => {
 		const zPerLoop = vectorZ / loopCount;
 
 		let prevBlockLocation: BlockLocation | null = null;
-		const targets: Player[] = [];
+		const targets: Entity[] = [];
 		
 		for(let j = 0; j < loopCount; j++) {
 			const { location, rotation } = projectile;
@@ -158,7 +158,7 @@ const tickCallback = () => {
 					};
 
 					for(const target of dimension.getEntities(option)) {
-						targets.push(target as Player);
+						targets.push(target);
 					}
 				} catch(e) {
 					console.warn(e);
@@ -186,7 +186,7 @@ const tickCallback = () => {
 		}
 
 		for(const target of targets) {
-			runCommandOn(summoner, `damage "${target.name}" 1 entity_attack`, true);
+			runCommandOn(summoner, "damage @s 1 entity_attack", true);
 			minusStat(target, damage, "hp", "maxhp");
 		}
 
@@ -211,7 +211,7 @@ export const addProjectile = (
 	summoner: Player,
 	viewVector: Vector,
 	offset?: Vector,
-	onHit?: (self: Entity, summoner: Player, targets: Player[]) => void,
+	onHit?: (self: Entity, summoner: Player, targets: Entity[]) => void,
 	onTick?: {
 		[tick: number]: (self: Entity, summoner: Player) => void;
 	},

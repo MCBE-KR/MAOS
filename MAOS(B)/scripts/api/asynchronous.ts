@@ -30,6 +30,7 @@ const tickCallback = () => {
 	delete queue[currentTick];
 };
 
+// TODO: Promise 추가
 export const addTask = (afterTick: number, callback: (args?: any[]) => void, args?: any[]) => {
 	if(afterTick <= 0) {
 		callback();

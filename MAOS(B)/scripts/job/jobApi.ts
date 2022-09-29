@@ -1,52 +1,52 @@
-import { Player } from "mojang-minecraft";
+import { Entity } from "mojang-minecraft";
 import { format } from "../api/common";
 import { getScore, Score, setScore } from "../api/scoreboard";
 import { SkillFailReason } from "./job";
 
 export const addStat = (
-	player: Player,
+	entity: Entity,
 	stat: number,
 	objectiveId: Score,
 	maxObjectiveId: Score,
 ) => {
-	const currentStat = getScore(player, objectiveId);
+	const currentStat = getScore(entity, objectiveId);
 	if (currentStat < -stat) {
 		console.warn(`Stat is minus - ${objectiveId} ${currentStat} ${stat}`);
 		return;
 	}
 
-	const maxStat = getScore(player, maxObjectiveId);
+	const maxStat = getScore(entity, maxObjectiveId);
 	const resultStat = Math.min(currentStat + stat, maxStat);
 
-	setScore(player, objectiveId, resultStat);
+	setScore(entity, objectiveId, resultStat);
 };
 
 export const minusStat = (
-	player: Player,
+	entity: Entity,
 	stat: number,
 	objectiveId: Score,
 	maxObjectiveId: Score,
 ) => {
-	addStat(player, -stat, objectiveId, maxObjectiveId);
+	addStat(entity, -stat, objectiveId, maxObjectiveId);
 };
 
-export const addHp = (player: Player, hp: number) => {
-	addStat(player, hp, "hp", "maxhp");
+export const addHp = (entity: Entity, hp: number) => {
+	addStat(entity, hp, "hp", "maxhp");
 };
 
-export const minusHp = (player: Player, hp: number) => {
-	minusStat(player, hp, "hp", "maxhp");
+export const minusHp = (entity: Entity, hp: number) => {
+	minusStat(entity, hp, "hp", "maxhp");
 };
 
-export const addMn = (player: Player, mn: number) => {
-	addStat(player, mn, "mn", "maxmn");
+export const addMn = (entity: Entity, mn: number) => {
+	addStat(entity, mn, "mn", "maxmn");
 };
 
-export const minusMn = (player: Player, mn: number) => {
-	minusStat(player, mn, "mn", "maxmn");
+export const minusMn = (entity: Entity, mn: number) => {
+	minusStat(entity, mn, "mn", "maxmn");
 };
 
-export const checkCool = (player: Player, skillNumber: number) => {
+export const checkCool = (entity: Entity, skillNumber: number) => {
 	let baseObjectiveId: Score;
 	let objectiveId: Score;
 	
@@ -79,9 +79,9 @@ export const checkCool = (player: Player, skillNumber: number) => {
 			throw new Error(`Unknown skill number - ${skillNumber}`);
 	}
 
-	const cool = getScore(player, objectiveId);
+	const cool = getScore(entity, objectiveId);
 	if (cool !== 0) {
-		const baseCool = getScore(player, baseObjectiveId);
+		const baseCool = getScore(entity, baseObjectiveId);
 		return format(SkillFailReason.COOL_REMAIN, [
 			skillNumber,
 			cool / 20,
@@ -92,11 +92,11 @@ export const checkCool = (player: Player, skillNumber: number) => {
 	return null;
 };
 
-export const checkMn = (player: Player, skillNumber: number, mn: number) => {
-	const success = getScore(player, "mn") >= mn;
+export const checkMn = (entity: Entity, skillNumber: number, mn: number) => {
+	const success = getScore(entity, "mn") >= mn;
 
 	if (!success) {
-		const currentMn = getScore(player, "mn");
+		const currentMn = getScore(entity, "mn");
 
 		return format(SkillFailReason.REQUIRES_MN, [
 			skillNumber,
@@ -108,16 +108,16 @@ export const checkMn = (player: Player, skillNumber: number, mn: number) => {
 	return null;
 };
 
-export const checkCoolAndMn = (player: Player, skillNumber: number, mn: number) => {
-	const coolMessage = checkCool(player, skillNumber);
+export const checkCoolAndMn = (entity: Entity, skillNumber: number, mn: number) => {
+	const coolMessage = checkCool(entity, skillNumber);
 	if (coolMessage) {
 		return coolMessage;
 	}
 
-	return checkMn(player, skillNumber, mn);
+	return checkMn(entity, skillNumber, mn);
 };
 
-export const setCoolToBase = (player: Player, skillIndex: 1 | 2 | 3 | 4) => {
+export const setCoolToBase = (entity: Entity, skillIndex: 1 | 2 | 3 | 4) => {
 	let cool: Score;
 	let baseCool: Score;
 
@@ -147,15 +147,15 @@ export const setCoolToBase = (player: Player, skillIndex: 1 | 2 | 3 | 4) => {
 			break;
 	}
 	
-	setScore(player, cool, getScore(player, baseCool));
+	setScore(entity, cool, getScore(entity, baseCool));
 };
 
-export const resetScore = (player: Player) => {
-	setScore(player, "hp", getScore(player, "maxhp"));
-	setScore(player, "mn", getScore(player, "maxmn"));
+export const resetScore = (entity: Entity) => {
+	setScore(entity, "hp", getScore(entity, "maxhp"));
+	setScore(entity, "mn", getScore(entity, "maxmn"));
 
-	setScore(player, "cool1", 0);
-	setScore(player, "cool2", 0);
-	setScore(player, "cool3", 0);
-	setScore(player, "cool4", 0);
+	setScore(entity, "cool1", 0);
+	setScore(entity, "cool2", 0);
+	setScore(entity, "cool3", 0);
+	setScore(entity, "cool4", 0);
 };

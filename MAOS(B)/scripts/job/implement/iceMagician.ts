@@ -1,4 +1,5 @@
 import { Player } from "mojang-minecraft";
+import { addStun } from "../../api/buff";
 import { send } from "../../api/message";
 import { addProjectile } from "../../api/projectile";
 import { setScore } from "../../api/scoreboard";
@@ -54,7 +55,10 @@ export class IceMagician extends Job {
 			undefined,
 			(_self, _summoner, targets) => {
 				const target = targets[0];
-				
+				addStun({
+					entity: target,
+					tick: 30
+				});
 			}
 		);
 	}
