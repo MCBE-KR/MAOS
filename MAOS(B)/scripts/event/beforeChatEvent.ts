@@ -1,8 +1,8 @@
-import { Player, world } from "mojang-minecraft";
+import { Player, Vector, world } from "mojang-minecraft";
 import { runCommand } from "../api/common";
 import { send } from "../api/message";
 import { scores } from "../api/scoreboard";
-import { ADMIN_LIST } from "../common/constants";
+import { ADMIN_LIST, OVERWORLD } from "../common/constants";
 import { setJob } from "../job/jobData";
 
 const initScoreboard = (player: Player) => {
@@ -51,9 +51,21 @@ const setPlayerJob = (player: Player, data: string) => {
 	send(player, "Success");
 };
 
+const test = () => {
+	const entities = OVERWORLD.getEntities({
+		type: "maos:j1s1"
+	});
+
+	for(const entity of entities) {
+		console.warn(entity.nameTag);
+		entity.setVelocity(new Vector(0, 100, 0));
+	}
+};
+
 const adminCommands: {[key: string]: (sender: Player, data: string) => void} = {
 	"initScoreboard": initScoreboard,
 	"setJob": setPlayerJob,
+	"test": test,
 };
 
 const commands: {[key: string]: (sender: Player, data: string) => void} = {

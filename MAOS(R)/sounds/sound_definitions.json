@@ -1,0 +1,51 @@
+{
+    "format_version": "1.14.0",
+    "sound_definitions": {
+        "random.levelup": {
+            "category": "ui",
+            "sounds": []
+        },
+        "maos.j1s1_spawn": {
+            "category": "ui",
+            "sounds": [
+                {
+                    "name": "sounds/item/trident/throw1",
+                    "volume": 2
+                }
+            ]
+        },
+        "maos.j1s1_tick": {
+            "category": "ui",
+            "sounds": [
+                {
+                    "name": "sounds/j1/j1s1_tick1",
+                    "volume": 0.5
+                },
+                {
+                    "name": "sounds/j1/j1s1_tick2",
+                    "volume": 0.5
+                }
+            ]
+        },
+        "maos.j1s1_hit": {
+            "category": "ui",
+            "sounds": [
+                {
+                    "name": "sounds/random/glass1",
+                    "volume": 0.5,
+                    "load_on_low_memory": true
+                },
+                {
+                    "name": "sounds/random/glass2",
+                    "volume": 0.5,
+                    "load_on_low_memory": true
+                },
+                {
+                    "name": "sounds/random/glass3",
+                    "volume": 0.5,
+                    "load_on_low_memory": true
+                }
+            ]
+        }
+    }
+}

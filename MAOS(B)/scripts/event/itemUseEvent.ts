@@ -1,4 +1,4 @@
-import { Player, world } from "mojang-minecraft";
+import { world } from "mojang-minecraft";
 import { isPlayer } from "../api/common";
 import { send } from "../api/message";
 import { getJob } from "../job/jobData";
@@ -9,25 +9,24 @@ world.events.itemUse.subscribe(event => {
 		return;
 	}
 
-	const player = source as Player;
 	const itemName = item.id;
 
 	if(itemName.startsWith("maos:skill")) {
-		const job = getJob(player);
+		const job = getJob(source);
 
 		let skillNumber = itemName.endsWith("a") ? 1 : 3;
-		if (player.isSneaking) {
+		if (source.isSneaking) {
 			skillNumber++;
 		}
 		
 		const [beforeSkill, skill] = job.getSkill(skillNumber);
 		
-		const invalidReason = beforeSkill(player);
+		const invalidReason = beforeSkill(source);
 		if(invalidReason) {
-			send(player, invalidReason);
+			send(source, invalidReason);
 			return;
 		}
 
-		skill(player);
+		skill(source);
 	}
 });

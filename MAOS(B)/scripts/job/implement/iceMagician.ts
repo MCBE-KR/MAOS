@@ -1,8 +1,7 @@
 import { Player } from "mojang-minecraft";
-import { addStun } from "../../api/buff";
 import { send } from "../../api/message";
 import { addProjectile } from "../../api/projectile";
-import { setScore } from "../../api/scoreboard";
+import { setScore, syncMn } from "../../api/scoreboard";
 import { Job } from "../job";
 import { checkCoolAndMn, minusMn, resetScore, setCoolToBase } from "../jobApi";
 
@@ -40,6 +39,7 @@ export class IceMagician extends Job {
 	execute1(player: Player): void {
 		setCoolToBase(player, 1);
 		minusMn(player, 30);
+		syncMn(player);
 
 		addProjectile("maos:j1s1", player, player.viewVector);
 	}
@@ -47,25 +47,15 @@ export class IceMagician extends Job {
 	execute2(player: Player): void {
 		setCoolToBase(player, 2);
 		minusMn(player, 50);
+		syncMn(player);
 
-		addProjectile(
-			"maos:j1s2",
-			player,
-			player.viewVector,
-			undefined,
-			(_self, _summoner, targets) => {
-				const target = targets[0];
-				addStun({
-					entity: target,
-					tick: 30
-				});
-			}
-		);
+		addProjectile("maos:j1s2", player, player.viewVector);
 	}
 
 	execute3(player: Player): void {
 		setCoolToBase(player, 3);
 		minusMn(player, 70);
+		syncMn(player);
 
 		send(player, "s3");
 	}
@@ -73,6 +63,7 @@ export class IceMagician extends Job {
 	execute4(player: Player): void {
 		setCoolToBase(player, 4);
 		minusMn(player, 100);
+		syncMn(player);
 
 		send(player, "s4");
 	}

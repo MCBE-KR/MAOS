@@ -1,5 +1,5 @@
-import { Entity } from "mojang-minecraft";
-import { OVERWORLD } from "../common/constants";
+import { Entity, Player } from "mojang-minecraft";
+import { IDENTIFIER_TAG, OVERWORLD } from "../common/constants";
 import { getScore } from "./scoreboard";
 
 export const format = (str: string, args: any[]) => {
@@ -81,6 +81,17 @@ export const runCommandAsyncOn = async (
 	});
 };
 
-export const isPlayer = (entity: Entity) => {
+export const isPlayer = (entity: Entity): entity is Player => {
 	return entity.id === "minecraft:player";
-}
+};
+
+export const getIdentifier = (entity: Entity) => {
+	const identifier = entity.getTags()
+		.filter(tag => tag.startsWith(IDENTIFIER_TAG));
+	if(!identifier.length) {
+		console.error("Identifier is undefined", entity.id, isPlayer(entity) ? entity.name : "-");
+		return "";
+	}
+
+	return identifier[0];
+};

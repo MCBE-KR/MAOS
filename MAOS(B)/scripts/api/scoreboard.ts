@@ -1,4 +1,4 @@
-import { Entity, world } from "mojang-minecraft";
+import { Entity, Player, world } from "mojang-minecraft";
 
 const SCOREBOARD = world.scoreboard;
 
@@ -34,20 +34,24 @@ export const debuffs: Score[] = [
 	"poison",
 ];
 
-export const buffActions: {
-	[buff: string]: (entity: Entity) => void
-} = {
-	poison: (entity) => {
-		
-	}
-};
-
 export const getScore = (entity: Entity, objectiveId: Score, defaultValue: number | undefined = 0) => {
 	try {
 		return SCOREBOARD.getObjective(objectiveId).getScore(entity.scoreboard);
 	} catch {
 		return defaultValue;
 	}
+};
+
+export const syncMn = (player: Player, mn?: number) => {
+	if(mn !== undefined) {
+		player.runCommand(`xp -9999L @s`);
+		player.runCommand(`xp ${mn}L @s`);
+
+		return;
+	}
+	
+	const gotMn = getScore(player, "mn");
+	syncMn(player, gotMn);
 };
 
 export const setScore = (entity: Entity, objectiveId: Score, value: number, isAsync: boolean = false) => {

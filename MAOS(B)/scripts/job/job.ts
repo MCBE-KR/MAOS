@@ -1,7 +1,8 @@
 import { Player } from "mojang-minecraft";
 
 const jobEvents = [
-	"DESPAWN_PROJECTILE"
+	"DESPAWN_PROJECTILE",
+	"PROJECTILE_HIT_WALL",
 ] as const;
 export type JobEvent = typeof jobEvents[number];
 

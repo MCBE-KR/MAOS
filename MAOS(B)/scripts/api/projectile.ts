@@ -3,7 +3,7 @@ import { minusStat } from "../job/jobApi";
 import { OVERWORLD } from "../common/constants";
 import { passableBlockTypes, IProjectile, projectileData, projectileEvent, ProjectileIdentifier } from "../common/projectileData";
 import { getScore, Score, setScore } from "./scoreboard";
-import { run, runCommand, runCommandOn } from "./common";
+import { run, runCommand, runCommandAsyncOn, runCommandOn } from "./common";
 
 const PROJECTILE_NEAR = "maos_projectile_near";
 const projectiles: IProjectile[] = [];
@@ -25,6 +25,9 @@ const tickCallback = () => {
 			summoner,
 			damage,
 			vector,
+			tickSound,
+			tickSoundRate,
+			hitSound,
 			projectileParticle,
 			molangVariableMap,
 			scoreFlags,
@@ -38,6 +41,10 @@ const tickCallback = () => {
 		let currentHitCount = projectileObj.currentHitCount;
 		let tick = projectileObj.tick;
 
+		if(tickSound && tick % tickSoundRate! === 0) {
+			runCommandAsyncOn(projectile, `playsound ${tickSound} @s ~ ~ ~`);
+		}
+
 		try {
 			runCommandOn(projectile, "testfor @s");
 			runCommandOn(summoner, "testfor @s");
@@ -49,7 +56,7 @@ const tickCallback = () => {
 		projectileObj.tick = ++tick;
 		if (tick === projectileObj.life) {
 			const jobScore = getScore(summoner, "job");
-			projectileEvent[jobScore]?.DESPAWN_PROJECTILE(summoner, projectileObj);
+			projectileEvent[jobScore]?.DESPAWN_PROJECTILE?.(summoner, projectileObj);
 
 			removeIndexes.push(i);
 		}
@@ -93,6 +100,9 @@ const tickCallback = () => {
 				const block = dimension.getBlock(blockLocation);
 
 				if (!passableBlockTypes.has(block.type)) {
+					const jobScore = getScore(summoner, "job");
+					projectileEvent[jobScore]?.PROJECTILE_HIT_WALL?.(summoner, projectileObj);
+
 					targets.splice(0, targets.length);
 					removeIndexes.push(i);
 
@@ -183,10 +193,14 @@ const tickCallback = () => {
 
 		if(onHit) {
 			onHit(projectile, summoner, targets);
+
+			if(hitSound) {
+				runCommandAsyncOn(projectile, `playsound ${hitSound} @s ~ ~ ~`);
+			}
 		}
 
 		for(const target of targets) {
-			runCommandOn(summoner, "damage @s 1 entity_attack", true);
+			runCommandOn(target, "damage @s 1 entity_attack", true);
 			minusStat(target, damage, "hp", "maxhp");
 		}
 
@@ -209,28 +223,8 @@ const tickCallback = () => {
 export const addProjectile = (
 	identifier: ProjectileIdentifier,
 	summoner: Player,
-	viewVector: Vector,
-	offset?: Vector,
-	onHit?: (self: Entity, summoner: Player, targets: Entity[]) => void,
-	onTick?: {
-		[tick: number]: (self: Entity, summoner: Player) => void;
-	},
-	onLoopTick?: {
-		[tick: number]: (self: Entity, summoner: Player) => void;
-	},
+	viewVector: Vector
 ) => {
-	const { location, rotation } = summoner;
-	const spawnLocation = new Location(
-		location.x + (offset?.x || 0),
-		location.y + (offset?.y || 1.6),
-		location.z + (offset?.z || 0),
-	);
-
-	const projectile = OVERWORLD.spawnEntity(identifier, spawnLocation);
-	projectile.teleport(projectile.location, projectile.dimension, rotation.x, rotation.y);
-
-	setScore(projectile, "team", getScore(summoner, "team"));
-
 	const {
 		life,
 		damage,
@@ -240,15 +234,45 @@ export const addProjectile = (
 		destroyAfterHit,
 		keepUntilAllHit,
 		hitRange,
+		spawnSound,
+		tickSound,
+		tickSoundRate,
+		hitSound,
 		steadyParticle,
-		molangVariableMap
+		molangVariableMap,
+		getOffset,
+		getOnHit,
+		getOnTick,
+		getOnLoopTick
 	} = projectileData[identifier];
+
+	const { location } = summoner;
+	const offset = getOffset ? getOffset(summoner) : null;
+	const spawnLocation = new Location(
+		location.x + (offset?.x || 0),
+		location.y + (offset?.y || 1.6),
+		location.z + (offset?.z || 0),
+	);
+
+	const projectile = OVERWORLD.spawnEntity(identifier, spawnLocation);
+	projectile.teleportFacing(projectile.location, projectile.dimension, viewVector);
+
+	setScore(projectile, "team", getScore(summoner, "team"));
+
+	if(spawnSound) {
+		runCommandAsyncOn(summoner, `playsound ${spawnSound} @s ~ ~ ~`);
+	}
+
 	const { x, y, z } = viewVector;
 
 	let projectileParticle;
 	if(steadyParticle === true) {
 		projectileParticle = identifier;
 	}
+
+	const onHit = getOnHit ? getOnHit(summoner) : undefined;
+	const onTick = getOnTick ? getOnTick(summoner) : undefined;
+	const onLoopTick = getOnLoopTick ? getOnLoopTick(summoner) : undefined;
 
 	projectiles.push({
 		projectile,
@@ -264,9 +288,12 @@ export const addProjectile = (
 			? molangVariableMap || new MolangVariableMap()
 			: undefined,
 		hitRange,
+		tickSound,
+		tickSoundRate,
+		hitSound,
+		onHit,
 		onTick,
 		onLoopTick,
-		onHit,
 		tick: 0,
 		currentHitCount: 0,
 		vector: new Vector(

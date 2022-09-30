@@ -1,7 +1,5 @@
-import { Entity, TickEvent, world } from "mojang-minecraft";
-import { OVERWORLD } from "../common/constants";
-import { addTask } from "./asynchronous";
-import { buffActions, getScore, Score, setScore } from "./scoreboard";
+import { Entity } from "mojang-minecraft";
+import { getScore, Score, setScore } from "./scoreboard";
 
 interface IAddBuff {
 	entity: Entity | Entity[];
@@ -9,57 +7,39 @@ interface IAddBuff {
 	canStack?: boolean;
 }
 
-export const BUFF_TAG = "buff_";
+export const BUFF_TAG = "buff";
+export const BUFF_TAG_LENGTH = BUFF_TAG.length + 1;
 
-const BUFF_TICK = 10;
-const BUFF_TAG_LENGTH = BUFF_TAG.length;
-
-const buffTickEvent = (event: TickEvent) => {
-	if (event.currentTick % BUFF_TICK !== 0) {
-		return;
-	}
-
-	const entities = OVERWORLD.getEntities({
-		tags: [BUFF_TAG],
-	});
-
-	let iterated = false;
-	for (const entity of entities) {
-		iterated = true;
-		
-		const tags = entity
-			.getTags()
-			.filter((tag) => tag.startsWith(`${BUFF_TAG}`));
-
-		for (const tag of tags) {
-			const buff = tag.substring(BUFF_TAG_LENGTH) as Score;
-			const score = getScore(entity, buff);
-
-			const action = buffActions[buff];
-			if(action) {
-				action(entity);
-			}
-
-			if (score <= BUFF_TICK) {
-				addTask(score, () => {
-					entity.removeTag(tag);
-				});
-			}
-		}
-	}
-
-	if(!iterated) {
-		world.events.tick.unsubscribe(buffTickEvent);
-	}
+export const buffDatas: {
+	[buff in Score]?: {
+		buffTick: number;
+		getBuffVariable: (entity: Entity) => any;
+		getBuffAction: (entity: Entity, buffVariables: any) => void;
+	};
+} = {
+	stun: {
+		buffTick: 1,
+		getBuffVariable: (entity) => {
+			return {
+				location: entity.location,
+				rotation: entity.rotation,
+				dimension: entity.dimension,
+			};
+		},
+		getBuffAction: (entity, buffVariables) => {
+			const { location, rotation, dimension } = buffVariables;
+			entity.teleport(location, dimension, rotation.x, rotation.y, false);
+		},
+	},
 };
 
 const addBuff = (entity: Entity, buff: Score) => {
 	entity.addTag(BUFF_TAG);
-	entity.addTag(`${BUFF_TAG}${buff}`);
+	entity.addTag(`${BUFF_TAG}_${buff}`);
 };
 
-export const addStun = async ({ entity, tick, canStack = false }: IAddBuff) => {
-	await new Promise(() => {
+export const addStun = ({ entity, tick, canStack = false }: IAddBuff) => {
+	return new Promise(() => {
 		const addStunToEntity = (target: Entity) => {
 			const currentScore = getScore(target, "stun");
 			const newScore = canStack
@@ -77,7 +57,5 @@ export const addStun = async ({ entity, tick, canStack = false }: IAddBuff) => {
 		} else {
 			addStunToEntity(entity);
 		}
-
-		world.events.tick.subscribe(buffTickEvent);
 	});
 };

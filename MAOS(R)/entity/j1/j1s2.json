@@ -2,7 +2,7 @@
     "format_version": "1.10.0",
     "minecraft:client_entity": {
         "description": {
-            "identifier": "cmd:j1s2",
+            "identifier": "maos:j1s2",
             "materials": {
                 "default": "arrow"
             },

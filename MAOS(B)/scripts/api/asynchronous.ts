@@ -30,29 +30,30 @@ const tickCallback = () => {
 	delete queue[currentTick];
 };
 
-// TODO: Promise 추가
 export const addTask = (afterTick: number, callback: (args?: any[]) => void, args?: any[]) => {
-	if(afterTick <= 0) {
-		callback();
-		return;
-	}
+	return new Promise<void>(() => {
+		if(afterTick <= 0) {
+			callback();
+			return;
+		}
 
-	const tick = currentTick + afterTick;
-	const task = {
-		callback,
-		args
-	};
+		const tick = currentTick + afterTick;
+		const task = {
+			callback,
+			args
+		};
 
-	let tasks = queue[tick];
-	if(!tasks) {
-		tasks = [task];
-		queue[tick] = tasks;
-	} else {
-		tasks.push(task);
-	}
+		let tasks = queue[tick];
+		if(!tasks) {
+			tasks = [task];
+			queue[tick] = tasks;
+		} else {
+			tasks.push(task);
+		}
 
-	if(!running) {
-		running = true;
-		world.events.tick.subscribe(tickCallback);
-	}
+		if(!running) {
+			running = true;
+			world.events.tick.subscribe(tickCallback);
+		}
+	});
 };

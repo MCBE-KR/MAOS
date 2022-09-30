@@ -1,6 +1,6 @@
 import { Entity } from "mojang-minecraft";
-import { format } from "../api/common";
-import { getScore, Score, setScore } from "../api/scoreboard";
+import { format, isPlayer } from "../api/common";
+import { getScore, Score, setScore, syncMn } from "../api/scoreboard";
 import { SkillFailReason } from "./job";
 
 export const addStat = (
@@ -151,11 +151,17 @@ export const setCoolToBase = (entity: Entity, skillIndex: 1 | 2 | 3 | 4) => {
 };
 
 export const resetScore = (entity: Entity) => {
+	const maxmn = getScore(entity, "maxmn");
+	
 	setScore(entity, "hp", getScore(entity, "maxhp"));
-	setScore(entity, "mn", getScore(entity, "maxmn"));
+	setScore(entity, "mn", maxmn);
 
 	setScore(entity, "cool1", 0);
 	setScore(entity, "cool2", 0);
 	setScore(entity, "cool3", 0);
 	setScore(entity, "cool4", 0);
+	
+	if(isPlayer(entity)) {
+		syncMn(entity, maxmn);
+	}
 };
