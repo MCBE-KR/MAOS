@@ -93,10 +93,10 @@ export const projectileData: {
 		destroyAfterHit: true,
 		keepUntilAllHit: false,
 		hitRange: 1,
-		spawnSound: "maos:j1s1_spawn",
-		tickSound: "maos:j1s1_tick",
+		spawnSound: "maos.j1s1_spawn",
+		tickSound: "maos.j1s1_tick",
 		tickSoundRate: 1,
-		hitSound: "maos:j1s1_hit",
+		hitSound: "maos.j1s1_hit",
 		steadyParticle: true,
 	},
 	"maos:j1s2": {

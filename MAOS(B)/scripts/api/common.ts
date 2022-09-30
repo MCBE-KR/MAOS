@@ -1,4 +1,4 @@
-import { Entity, Player } from "mojang-minecraft";
+import { Entity, Location, Player, world } from "mojang-minecraft";
 import { IDENTIFIER_TAG, OVERWORLD } from "../common/constants";
 import { getScore } from "./scoreboard";
 
@@ -94,4 +94,16 @@ export const getIdentifier = (entity: Entity) => {
 	}
 
 	return identifier[0];
+};
+
+export const playSound = (sound: string, entity: Entity) => {
+	// TODO: 작동하지 않으므로 수정되면 주석 풀 것
+	// world.playSound(sound, {
+	// 	location,
+	// 	pitch: 1,
+	// 	volume: 1
+	// });
+
+	const location = entity.location;
+	OVERWORLD.runCommandAsync(`playsound ${sound} @a ${location.x} ${location.y} ${location.z}`);
 };

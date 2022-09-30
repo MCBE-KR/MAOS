@@ -3,7 +3,7 @@ import { minusStat } from "../job/jobApi";
 import { OVERWORLD } from "../common/constants";
 import { passableBlockTypes, IProjectile, projectileData, projectileEvent, ProjectileIdentifier } from "../common/projectileData";
 import { getScore, Score, setScore } from "./scoreboard";
-import { run, runCommand, runCommandAsyncOn, runCommandOn } from "./common";
+import { playSound, run, runCommand, runCommandAsyncOn, runCommandOn } from "./common";
 
 const PROJECTILE_NEAR = "maos_projectile_near";
 const projectiles: IProjectile[] = [];
@@ -41,8 +41,8 @@ const tickCallback = () => {
 		let currentHitCount = projectileObj.currentHitCount;
 		let tick = projectileObj.tick;
 
-		if(tickSound && tick % tickSoundRate! === 0) {
-			runCommandAsyncOn(projectile, `playsound ${tickSound} @s ~ ~ ~`);
+		if(tickSound && (tick % tickSoundRate!) === 0) {
+			playSound(tickSound, projectile);
 		}
 
 		try {
@@ -59,14 +59,6 @@ const tickCallback = () => {
 			projectileEvent[jobScore]?.DESPAWN_PROJECTILE?.(summoner, projectileObj);
 
 			removeIndexes.push(i);
-		}
-
-		if(projectileParticle) {
-			dimension.spawnParticle(
-				projectileParticle,
-				projectile.location,
-				molangVariableMap!,
-			);
 		}
 
 		projectileObj.onTick?.[0](projectile, summoner);
@@ -94,6 +86,14 @@ const tickCallback = () => {
 		for(let j = 0; j < loopCount; j++) {
 			const { location, rotation } = projectile;
 
+			if (projectileParticle) {
+				dimension.spawnParticle(
+					projectileParticle,
+					location,
+					molangVariableMap!,
+				);
+			}
+
 			const blockLocation = new BlockLocation(location.x, location.y, location.z);
 			if(!prevBlockLocation?.equals(blockLocation)) {
 				prevBlockLocation = blockLocation;
@@ -105,6 +105,10 @@ const tickCallback = () => {
 
 					targets.splice(0, targets.length);
 					removeIndexes.push(i);
+
+					if (hitSound) {
+						playSound(hitSound, projectile);
+					}
 
 					break;
 				}
@@ -195,7 +199,7 @@ const tickCallback = () => {
 			onHit(projectile, summoner, targets);
 
 			if(hitSound) {
-				runCommandAsyncOn(projectile, `playsound ${hitSound} @s ~ ~ ~`);
+				playSound(hitSound, projectile);
 			}
 		}
 
@@ -212,7 +216,7 @@ const tickCallback = () => {
 		}
 	}
 
-	for(const index of removeIndexes) {
+	for(const index of new Set(removeIndexes)) {
 		run(() => {
 			const projectileObj = projectiles.splice(index, 1)[0];
 			projectileObj.projectile.triggerEvent("maos:despawn");
@@ -260,7 +264,7 @@ export const addProjectile = (
 	setScore(projectile, "team", getScore(summoner, "team"));
 
 	if(spawnSound) {
-		runCommandAsyncOn(summoner, `playsound ${spawnSound} @s ~ ~ ~`);
+		playSound(spawnSound, summoner);
 	}
 
 	const { x, y, z } = viewVector;
